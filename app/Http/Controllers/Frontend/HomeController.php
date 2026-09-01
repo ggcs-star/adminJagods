@@ -50,20 +50,26 @@ class HomeController extends FrontendController
 
 
     private function getBestSellingRestaurants()
-    {
-        return Restaurant::with('media')
-            ->leftJoin('orders', 'orders.restaurant_id', '=', 'restaurants.id')
-            ->leftJoin('restaurant_ratings', 'restaurant_ratings.restaurant_id', '=', 'restaurants.id')
-            ->where('restaurants.status', '=', RestaurantStatus::ACTIVE)
-            ->where('restaurants.current_status', '=', RestaurantStatus::ACTIVE)
-            ->select('restaurants.*')
-            ->selectRaw('COUNT(orders.id) as orders_count')
-            ->selectRaw('COUNT(restaurant_ratings.id) as rating_count')
-            ->groupBy('restaurants.id')
-            ->orderByDesc('orders_count')
-            ->take(28)
-            ->get();
-    }
+{
+    return Restaurant::with('media')
+        ->where('restaurants.status', RestaurantStatus::ACTIVE)
+        ->where('restaurants.current_status', RestaurantStatus::ACTIVE)
+        ->select('restaurants.*')
+        ->selectSub(function ($query) {
+            $query->from('orders')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('orders.restaurant_id', 'restaurants.id');
+        }, 'orders_count')
+        ->selectSub(function ($query) {
+            $query->from('restaurant_ratings')
+                ->selectRaw('COUNT(*)')
+                ->whereColumn('restaurant_ratings.restaurant_id', 'restaurants.id');
+        }, 'rating_count')
+        ->orderByDesc('orders_count')
+        ->take(28)
+        ->get();
+}
+
 
     private function getBestSellingCuisines()
     {
