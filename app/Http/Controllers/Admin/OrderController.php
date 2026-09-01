@@ -24,7 +24,7 @@ use App\Http\Requests\OrderRequest;
 use App\Http\Services\OrderService;
 use App\Notifications\OrderUpdated;
 use App\Http\Controllers\BackendController;
-
+use App\Models\Invoice;
 class OrderController extends BackendController
 {
     /**
@@ -64,12 +64,32 @@ class OrderController extends BackendController
      *
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function show($id)
-    {
-        $this->data['order'] = Order::orderowner()->findOrFail($id);
-        $this->data['items'] = OrderLineItem::with('menuItem', 'variation')->with('restaurant')->where(['order_id' => $this->data['order']->id])->get();
-        return view('admin.orders.view', $this->data);
-    }
+public function show($id)
+{
+    $order = Order::query()
+        ->orderowner()
+        ->with([
+            'user',
+            'delivery',
+            'restaurant',
+            'discounts',
+            'module',
+            'device',
+            'items',
+        ])
+        ->findOrFail($id);
+
+    // Invoice ko direct order ke invoice_id se fetch karo.
+    $order->setRelation(
+        'invoice',
+        Invoice::query()->find($order->invoice_id)
+    );
+
+    $this->data['order'] = $order;
+    $this->data['items'] = $order->items;
+
+    return view('admin.orders.view', $this->data);
+}
 
     /**
      * @param $id
