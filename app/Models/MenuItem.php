@@ -28,6 +28,8 @@ class MenuItem extends BaseModel implements HasMedia
         'creator_id' => 'int',
         'editor_id ' => 'int',
         'max_cart_quantity' => 'int',
+        'module_id' => 'int',
+        'ingredients' => 'array',
     ];
     protected $fakeColumns = [];
 
@@ -205,6 +207,7 @@ class MenuItem extends BaseModel implements HasMedia
             'tags' => $this->tags,
             'restroType' => $this->restroType,
             'status' => (int) $this->status,
+            'module_id' => $this->module_id,
         ];
     }
 
@@ -213,4 +216,34 @@ class MenuItem extends BaseModel implements HasMedia
     {
         return $this->status == MenuItemStatus::ACTIVE;
     }
+
+    public function module()
+{
+    return $this->belongsTo(Module::class);
+}
+
+public function scopeModule($query, $slug)
+{
+    return $query->whereHas('module', function ($q) use ($slug) {
+        $q->where('slug', $slug);
+    });
+}
+
+public function scopeSearch($query, ?string $search)
+{
+    if (blank($search)) {
+        return $query;
+    }
+
+    $search = trim($search);
+
+    return $query->where(function ($q) use ($search) {
+        $q->where('name', 'LIKE', "%{$search}%")
+            ->orWhere('description', 'LIKE', "%{$search}%")
+            ->orWhereRaw(
+                "MATCH(name, description) AGAINST(? IN BOOLEAN MODE)",
+                [$search]
+            );
+    });
+}
 }
