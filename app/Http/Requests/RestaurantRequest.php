@@ -8,21 +8,11 @@ use Illuminate\Validation\Rule;
 
 class RestaurantRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function authorize()
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules()
     {
         if ($this->restaurant) {
@@ -40,6 +30,9 @@ class RestaurantRequest extends FormRequest
         return [
             'name'              => ['required', 'string', Rule::unique("restaurants", "name")->ignore($this->restaurant), 'max:191'],
             'description'       => ['nullable', 'string'],
+
+            'module_id'         => ['required', 'integer', 'exists:modules,id'],
+            'sort_order'        =>'nullable',
             'cuisines.*'        => 'nullable',
             'lat'               => ['required'],
             'long'              => ['required'],
@@ -65,12 +58,18 @@ class RestaurantRequest extends FormRequest
         ];
     }
 
-    public function messages () {
+    public function messages()
+    {
         return [
             'image.image'           => 'Please upload a valid image file (e.g., jpg, png, jpeg)',
             'restaurant_logo.image' => 'Please upload a valid image file (e.g., jpg, png, jpeg)',
             'image.mimes'           => 'Please upload a valid image file (e.g., jpg, png, jpeg)',
             'restaurant_logo.mimes' => 'Please upload a valid image file (e.g., jpg, png, jpeg)',
+
+            // Module validation messages
+            'module_id.required'    => 'Please select a module.',
+            'module_id.integer'     => 'Please select a valid module.',
+            'module_id.exists'      => 'Selected module is invalid.',
         ];
     }
 
@@ -79,6 +78,7 @@ class RestaurantRequest extends FormRequest
         return [
             'name'              => trans('validation.attributes.name'),
             'description'       => trans('validation.attributes.description'),
+            'module_id'         => trans('validation.attributes.module'),
             'lat'               => trans('validation.attributes.lat'),
             'long'              => trans('validation.attributes.long'),
             'opening_time'      => trans('validation.attributes.opening_time'),

@@ -397,6 +397,4 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'installed', 'licens
 
     // role module
     Route::get('get-roles', [RoleController::class, 'getroles'])->name('roles.get-roles');
-
-
 });

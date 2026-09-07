@@ -26,6 +26,7 @@ use App\Http\Controllers\BackendController;
 use App\Http\Requests\RestaurantStoreRequest;
 use Maatwebsite\Excel\Validators\ValidationException;
 use Illuminate\Support\Facades\Http;
+use App\Models\Module;
 
 class RestaurantController extends BackendController
 {
@@ -67,8 +68,12 @@ class RestaurantController extends BackendController
      */
     public function create()
     {
+        $this->data['cuisines'] = Cuisine::with('media')
+            ->where('status', Status::ACTIVE)
+            ->get();
 
-        $this->data['cuisines'] = Cuisine::with('media')->where(['status' => Status::ACTIVE])->get();
+        $this->data['modules'] = Module::where('status', 1)
+            ->get();
 
         return view('admin.restaurant.create', $this->data);
     }
@@ -79,6 +84,7 @@ class RestaurantController extends BackendController
      */
     public function store(RestaurantRequest $request)
     {
+        //    dd($request->toArray());
         $user             = new User;
         $user->first_name = $request->get('first_name');
         $user->last_name  = $request->get('last_name');
@@ -97,6 +103,12 @@ class RestaurantController extends BackendController
         $restaurant->user_id         = $user->id;
         $restaurant->name            = $request->name;
         $restaurant->description     = $request->description;
+        $restaurant->module_id            = $request->module_id;
+        $restaurant->coverImg        = '';
+        $restaurant->outletBanner        = '';
+        $restaurant->restroType    = 'veg';
+        $restaurant->sort_order        = $request->sort_order;
+        $restaurant->restroType        = $request->restroType;
         $restaurant->lat             = $request->lat;
         $restaurant->long            = $request->long;
         $restaurant->opening_time    = date('H:i:s', strtotime($request->opening_time));
@@ -115,7 +127,7 @@ class RestaurantController extends BackendController
         $restaurant->save();
         $restaurant->cuisines()->sync($request->get('cuisines'));
 
-        
+
         //Store Image
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
             $restaurant->addMediaFromRequest('image')->toMediaCollection('restaurant');
@@ -138,7 +150,7 @@ class RestaurantController extends BackendController
         return redirect(route('admin.restaurants.index'))->withError($depositService->message);
     }
 
- 
+
     /**
      * Show the form for editing the specified resource.
      *
@@ -151,6 +163,8 @@ class RestaurantController extends BackendController
 
         $this->data['restaurant']          = Restaurant::restaurantowner()->findOrFail($id);
         $this->data['cuisines']            = Cuisine::where(['status' => Status::ACTIVE])->get();
+        $this->data['modules'] = Module::where('status', 1)
+            ->get();
         $this->data['restaurant_cuisines'] =  $this->data['restaurant']->cuisines()->pluck('id')->toArray();
         return view('admin.restaurant.edit', $this->data);
     }
@@ -191,6 +205,12 @@ class RestaurantController extends BackendController
                 $restaurant->user_id         = $user->id;
                 $restaurant->name            = $request->name;
                 $restaurant->description     = $request->description;
+
+                // Naye fields jo store method mein the, unhe yahan add kiya gaya hai
+                $restaurant->module_id       = $request->module_id;
+                $restaurant->sort_order      = $request->sort_order;
+                $restaurant->restroType      = $request->restroType;
+
                 $restaurant->lat             = $request->lat;
                 $restaurant->long            = $request->long;
                 $restaurant->opening_time    = date('H:i:s', strtotime($request->opening_time));
@@ -202,12 +222,13 @@ class RestaurantController extends BackendController
                 $restaurant->pickup_status   = $request->pickup_status;
                 $restaurant->table_status    = $request->table_status;
                 $restaurant->status          = $request->status;
+
                 if ($user->status == UserStatus::INACTIVE) {
                     $restaurant->status = RestaurantStatus::INACTIVE;
                 }
+
                 $restaurant->save();
                 $restaurant->cuisines()->sync($request->get('cuisines'));
-
 
                 if ($request->hasFile('image') && $request->file('image')->isValid()) {
                     $this->deleteMedia('restaurant', $restaurant->id);
@@ -280,10 +301,10 @@ class RestaurantController extends BackendController
             return Datatables::of($restaurants)
                 ->addColumn('action', function ($restaurant) {
                     $button_array   = [];
-                    $button_array['view']   = ['route' => route('admin.restaurants.show', $restaurant),'permission' => 'restaurants_show'];
-                    $button_array['edit']   = ['route' => route('admin.restaurants.edit', $restaurant),'permission' => 'restaurants_edit'];
-                    $button_array['delete'] = ['route' => route('admin.restaurants.destroy', $restaurant),'permission' => 'restaurants_delete'];
-                    
+                    $button_array['view']   = ['route' => route('admin.restaurants.show', $restaurant), 'permission' => 'restaurants_show'];
+                    $button_array['edit']   = ['route' => route('admin.restaurants.edit', $restaurant), 'permission' => 'restaurants_edit'];
+                    $button_array['delete'] = ['route' => route('admin.restaurants.destroy', $restaurant), 'permission' => 'restaurants_delete'];
+
                     return action_button($button_array);
                 })
                 ->editColumn('user_id', function ($restaurant) {
@@ -317,13 +338,13 @@ class RestaurantController extends BackendController
             $i = 0;
             return Datatables::of($menuItems)
                 ->addColumn('action', function ($menuItem) {
-                    
+
                     $button_array           = [];
-                    $button_array['modify'] = ['route' => route('admin.menu-items.modify', $menuItem),'permission' => 'menu-items_show'];
-                    $button_array['view']   = ['route' => route('admin.menu-items.show', $menuItem),'permission' => 'menu-items_show'];
-                    $button_array['edit']   = ['route' => route('admin.menu-items.edit', $menuItem),'permission' => 'menu-items_edit'];
-                    $button_array['delete'] = ['route' => route('admin.menu-items.destroy', $menuItem),'permission' => 'menu-items_delete'];
-                    
+                    $button_array['modify'] = ['route' => route('admin.menu-items.modify', $menuItem), 'permission' => 'menu-items_show'];
+                    $button_array['view']   = ['route' => route('admin.menu-items.show', $menuItem), 'permission' => 'menu-items_show'];
+                    $button_array['edit']   = ['route' => route('admin.menu-items.edit', $menuItem), 'permission' => 'menu-items_edit'];
+                    $button_array['delete'] = ['route' => route('admin.menu-items.destroy', $menuItem), 'permission' => 'menu-items_delete'];
+
                     return action_button($button_array);
                 })
                 ->editColumn('id', function ($menuItem) use (&$i) {
