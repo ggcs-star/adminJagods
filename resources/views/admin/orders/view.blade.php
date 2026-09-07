@@ -37,8 +37,8 @@
                                         stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round" />
                                     <path
                                         d="M14 5.66683V11.3335C14 13.3335 13 14.6668 10.6667 14.6668H5.33333C3 14.6668 2 13.3335 2 11.3335V5.66683C2 3.66683 3 2.3335 5.33333 2.3335H10.6667C13 2.3335 14 3.66683 14 5.66683Z"
-                                        stroke="#6E7191" stroke-width="1.5" stroke-miterlimit="10"
-                                        stroke-linecap="round" stroke-linejoin="round" />
+                                        stroke="#6E7191" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"
+                                        stroke-linejoin="round" />
                                     <path d="M10.4635 9.13314H10.4694" stroke="#6E7191" stroke-width="2"
                                         stroke-linecap="round" stroke-linejoin="round" />
                                     <path d="M10.4635 11.1331H10.4694" stroke="#6E7191" stroke-width="2"
@@ -58,11 +58,11 @@
                             <li class="text-xs">{{ __('frontend.restaurant') }} : <span
                                     class="text-heading">{{ @$order->restaurant->name }}</span></li>
                             <li class="text-xs">{{ __('levels.order_type') }} : <span
-                                        class="text-heading">{{ $order->getOrderType }}</span></li>
+                                    class="text-heading">{{ $order->getOrderType }}</span></li>
                             <li class="text-xs">{{ __('order.payment_method') }} : <span
-                                class="text-heading">{{ trans('payment_method.' . $order->payment_method) }}</span>
+                                    class="text-heading">{{ trans('payment_method.' . $order->payment_method) }}</span>
                             </li>
-                            
+
                         </ul>
                     </div>
                     <div class="flex flex-wrap flex-col gap-3">
@@ -97,55 +97,72 @@
                                     <span class="text-sm capitalize text-white">{{ __('order.accept') }}</span>
                                 </a>
                             @elseif (auth()->user()->myRole == App\Enums\UserRole::RESTAURANTOWNER && $order->status == App\Enums\OrderStatus::ACCEPT)
-                                
                                 <div class="relative cursor-pointer">
-                                    <select id="orderStatus" data-id="{{ $order->id }}" data-url="/admin/order/change-status/" class="text-sm cursor-pointer capitalize appearance-none pl-4 pr-10 h-[38px] rounded border border-primary bg-white text-primary">
+                                    <select id="orderStatus" data-id="{{ $order->id }}"
+                                        data-url="/admin/order/change-status/"
+                                        class="text-sm cursor-pointer capitalize appearance-none pl-4 pr-10 h-[38px] rounded border border-primary bg-white text-primary">
                                         <option value="">{{ trans('order_status.' . $order->status) }}</option>
-                                        <option value="{{ App\Enums\OrderStatus::PROCESS }}">{{ __('order.process') }}</option>
+                                        <option value="{{ App\Enums\OrderStatus::PROCESS }}">{{ __('order.process') }}
+                                        </option>
                                     </select>
-                                    <i class="fa-solid fa-chevron-down cursor-pointer absolute top-1/2 right-3.5 -translate-y-1/2 text-xs text-primary"></i>
+                                    <i
+                                        class="fa-solid fa-chevron-down cursor-pointer absolute top-1/2 right-3.5 -translate-y-1/2 text-xs text-primary"></i>
                                 </div>
-                                
-                            @elseif ( (auth()->user()->myRole == App\Enums\UserRole::DELIVERYBOY && $order->status == App\Enums\OrderStatus::ON_THE_WAY) || ( auth()->user()->myRole == App\Enums\UserRole::RESTAURANTOWNER && $order->order_type == App\Enums\OrderTypeStatus::PICKUP && $order->status == App\Enums\OrderStatus::PROCESS) )
-
+                            @elseif (
+                                (auth()->user()->myRole == App\Enums\UserRole::DELIVERYBOY &&
+                                    $order->status == App\Enums\OrderStatus::ON_THE_WAY) ||
+                                    (auth()->user()->myRole == App\Enums\UserRole::RESTAURANTOWNER &&
+                                        $order->order_type == App\Enums\OrderTypeStatus::PICKUP &&
+                                        $order->status == App\Enums\OrderStatus::PROCESS))
                                 <div class="relative cursor-pointer">
-                                    <select id="orderStatus" data-id="{{ $order->id }}" data-url="/admin/order/change-status/" class="text-sm cursor-pointer capitalize appearance-none pl-4 pr-10 h-[38px] rounded border border-primary bg-white text-primary">
+                                    <select id="orderStatus" data-id="{{ $order->id }}"
+                                        data-url="/admin/order/change-status/"
+                                        class="text-sm cursor-pointer capitalize appearance-none pl-4 pr-10 h-[38px] rounded border border-primary bg-white text-primary">
                                         <option value="">{{ trans('order_status.' . $order->status) }}</option>
-                                        <option value="{{ App\Enums\OrderStatus::COMPLETED }}">{{ __('order.completed') }}</option>
+                                        <option value="{{ App\Enums\OrderStatus::COMPLETED }}">
+                                            {{ __('order.completed') }}</option>
                                     </select>
-                                    <i class="fa-solid fa-chevron-down cursor-pointer absolute top-1/2 right-3.5 -translate-y-1/2 text-xs text-primary"></i>
+                                    <i
+                                        class="fa-solid fa-chevron-down cursor-pointer absolute top-1/2 right-3.5 -translate-y-1/2 text-xs text-primary"></i>
                                 </div>
-
                             @elseif (auth()->user()->myRole == App\Enums\UserRole::DELIVERYBOY && $order->status == App\Enums\OrderStatus::PROCESS)
-
                                 <div class="relative cursor-pointer">
-                                    <select id="orderStatus" data-id="{{ $order->id }}" data-url="/admin/orders/product-receive/" class="text-sm cursor-pointer capitalize appearance-none pl-4 pr-10 h-[38px] rounded border border-primary bg-white text-primary">
+                                    <select id="orderStatus" data-id="{{ $order->id }}"
+                                        data-url="/admin/orders/product-receive/"
+                                        class="text-sm cursor-pointer capitalize appearance-none pl-4 pr-10 h-[38px] rounded border border-primary bg-white text-primary">
                                         <option value="">{{ trans('order_status.' . $order->status) }}</option>
                                         <option value="10">{{ __('order.not_receive') }}</option>
                                         <option value="5">{{ __('order.receive') }}</option>
                                     </select>
-                                    <i class="fa-solid fa-chevron-down cursor-pointer absolute top-1/2 right-3.5 -translate-y-1/2 text-xs text-primary"></i>
-                                </div>    
+                                    <i
+                                        class="fa-solid fa-chevron-down cursor-pointer absolute top-1/2 right-3.5 -translate-y-1/2 text-xs text-primary"></i>
+                                </div>
                             @endif
 
                             @if (!($order->status == App\Enums\OrderStatus::PENDING || $order->status == App\Enums\OrderStatus::REJECT))
-                                
-                                <button onclick="printDiv('invoice-print')" class="flex items-center justify-center gap-2 px-4 h-[38px] rounded shadow-db-card bg-primary">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M4.66699 3.3335C4.66699 2.22683 5.56033 1.3335 6.66699 1.3335H9.33366C10.4403 1.3335 11.3337 2.22683 11.3337 3.3335C11.3337 3.70016 11.0337 4.00016 10.667 4.00016H5.33366C4.96699 4.00016 4.66699 3.70016 4.66699 3.3335Z" fill="white"/>
-                                        <path d="M11.8337 10C11.8337 10.2733 11.607 10.5 11.3337 10.5H10.667V12.6667C10.667 13.7733 9.77366 14.6667 8.66699 14.6667H7.33366C6.22699 14.6667 5.33366 13.7733 5.33366 12.6667V10.5H4.66699C4.39366 10.5 4.16699 10.2733 4.16699 10C4.16699 9.72667 4.39366 9.5 4.66699 9.5H11.3337C11.607 9.5 11.8337 9.72667 11.8337 10Z" fill="white"/>
-                                        <path d="M12 4.6665H4C2.66667 4.6665 2 5.33317 2 6.6665V9.99984C2 11.3332 2.66667 11.9998 4 11.9998H4.25C4.48012 11.9998 4.66667 11.8133 4.66667 11.5832C4.66667 11.3531 4.4742 11.1735 4.25894 11.0921C3.81746 10.9253 3.5 10.4967 3.5 9.99984C3.5 9.35984 4.02667 8.83317 4.66667 8.83317H11.3333C11.9733 8.83317 12.5 9.35984 12.5 9.99984C12.5 10.4967 12.1825 10.9253 11.7411 11.0921C11.5258 11.1735 11.3333 11.3531 11.3333 11.5832C11.3333 11.8133 11.5199 11.9998 11.75 11.9998H12C13.3333 11.9998 14 11.3332 14 9.99984V6.6665C14 5.33317 13.3333 4.6665 12 4.6665ZM6.66667 7.83317H4.66667C4.39333 7.83317 4.16667 7.6065 4.16667 7.33317C4.16667 7.05984 4.39333 6.83317 4.66667 6.83317H6.66667C6.94 6.83317 7.16667 7.05984 7.16667 7.33317C7.16667 7.6065 6.94 7.83317 6.66667 7.83317Z" fill="white"/>
+                                <button onclick="printDiv('invoice-print')"
+                                    class="flex items-center justify-center gap-2 px-4 h-[38px] rounded shadow-db-card bg-primary">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M4.66699 3.3335C4.66699 2.22683 5.56033 1.3335 6.66699 1.3335H9.33366C10.4403 1.3335 11.3337 2.22683 11.3337 3.3335C11.3337 3.70016 11.0337 4.00016 10.667 4.00016H5.33366C4.96699 4.00016 4.66699 3.70016 4.66699 3.3335Z"
+                                            fill="white" />
+                                        <path
+                                            d="M11.8337 10C11.8337 10.2733 11.607 10.5 11.3337 10.5H10.667V12.6667C10.667 13.7733 9.77366 14.6667 8.66699 14.6667H7.33366C6.22699 14.6667 5.33366 13.7733 5.33366 12.6667V10.5H4.66699C4.39366 10.5 4.16699 10.2733 4.16699 10C4.16699 9.72667 4.39366 9.5 4.66699 9.5H11.3337C11.607 9.5 11.8337 9.72667 11.8337 10Z"
+                                            fill="white" />
+                                        <path
+                                            d="M12 4.6665H4C2.66667 4.6665 2 5.33317 2 6.6665V9.99984C2 11.3332 2.66667 11.9998 4 11.9998H4.25C4.48012 11.9998 4.66667 11.8133 4.66667 11.5832C4.66667 11.3531 4.4742 11.1735 4.25894 11.0921C3.81746 10.9253 3.5 10.4967 3.5 9.99984C3.5 9.35984 4.02667 8.83317 4.66667 8.83317H11.3333C11.9733 8.83317 12.5 9.35984 12.5 9.99984C12.5 10.4967 12.1825 10.9253 11.7411 11.0921C11.5258 11.1735 11.3333 11.3531 11.3333 11.5832C11.3333 11.8133 11.5199 11.9998 11.75 11.9998H12C13.3333 11.9998 14 11.3332 14 9.99984V6.6665C14 5.33317 13.3333 4.6665 12 4.6665ZM6.66667 7.83317H4.66667C4.39333 7.83317 4.16667 7.6065 4.16667 7.33317C4.16667 7.05984 4.39333 6.83317 4.66667 6.83317H6.66667C6.94 6.83317 7.16667 7.05984 7.16667 7.33317C7.16667 7.6065 6.94 7.83317 6.66667 7.83317Z"
+                                            fill="white" />
                                     </svg>
                                     <span class="text-sm capitalize text-white">{{ __('levels.print_invoice') }}</span>
                                 </button>
-
                             @endif
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-12 sm:col-6">
             <div class="db-card">
                 <div class="db-card-header">
@@ -163,24 +180,24 @@
                                     $options = is_array($decodedOptions) ? $decodedOptions : [];
                                 }
                             @endphp
-                            
+
                             <div class="mb-3 pb-3 border-b last:mb-0 last:pb-0 last:border-b-0 border-gray-2">
                                 <div class="flex items-center gap-3 relative">
                                     <h3
                                         class="absolute top-5 -left-3 text-sm w-[26px] h-[26px] leading-[26px] text-center rounded-full text-white bg-heading">
                                         {{ $item->quantity }}</h3>
-                                    
-                                    <!-- IMAGE NULL CHECK ADD KIYA -->    
-                                    <img class="w-16 h-16 rounded-lg flex-shrink-0 object-cover" 
-                                         src="{{ $item->menuItem->image ?? asset('images/default/food.png') }}"
+
+                                    <!-- IMAGE NULL CHECK ADD KIYA -->
+                                    <img class="w-16 h-16 rounded-lg flex-shrink-0 object-cover"
+                                        src="{{ $item->menuItem->image ?? asset('images/default/food.png') }}"
                                         alt="thumbnail">
-                                        
+
                                     <div class="w-full">
                                         <h3 class="text-sm font-medium capitalize transition text-heading hover:underline">
                                             {{ $item->menuItem->name ?? 'N/A' }}
                                         </h3>
-                                        
-                                        <!-- VARIATION RELATION FIX KIYA (->name instead of ['name']) -->
+
+                                        <!-- VARIATION RELATION FIX KIYA -->
                                         @if ($item->variation)
                                             <p class="capitalize text-xs mb-1.5">{{ __('order.variation') }} :
                                                 {{ $item->variation->name ?? '' }}</p>
@@ -198,7 +215,7 @@
                                                     {{ __('order.options') }}:</h3>
                                                 <ul class="text-xs w-full py-1">
                                                     @foreach ($options as $option)
-                                                        @if(!empty($option['name']))
+                                                        @if (!empty($option['name']))
                                                             <li class="inline-block">
                                                                 {{ $option['name'] }}{{ $loop->last ? '' : ' ,' }}
                                                             </li>
@@ -223,118 +240,177 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-12 sm:col-6">
             <div class="row">
                 <div class="col-12">
                     <div class="db-card p-1">
-                        <!-- YAHAN PURA ORDER SUMMARY ADD KIYA HAI -->
+                        <!-- YAHAN PURA ORDER SUMMARY -->
                         <ul class="flex flex-col gap-2 py-3 px-5">
-   
+
                             <li class="flex items-center justify-between text-heading">
                                 <span class="text-sm leading-6 capitalize">{{ __('levels.sub_total') }}</span>
-                                <span class="text-sm leading-6 capitalize">{{ currencyFormat($order->sub_total ?? 0) }}</span>
+                                <span
+                                    class="text-sm leading-6 capitalize">{{ currencyFormat($order->sub_total ?? 0) }}</span>
                             </li>
-                            
+
                             @if (($order->product_discount ?? 0) > 0)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.product_discount') }}</span>
-                                    <span class="text-sm leading-6 capitalize text-red-500">- {{ currencyFormat($order->product_discount) }}</span>
-                                </li>
-                            @endif
-
-                            @if (($order->discount ?? 0) > 0)
-                                <li class="flex items-center justify-between text-heading">
-                                    <span class="text-sm leading-6 capitalize">{{ __('levels.discount') }}</span>
-                                    <span class="text-sm leading-6 capitalize text-red-500">- {{ currencyFormat($order->discount) }}</span>
+                                    <span class="text-sm leading-6 capitalize text-red-500">-
+                                        {{ currencyFormat($order->product_discount) }}</span>
                                 </li>
                             @endif
 
                             @if (($order->gst_amount ?? 0) > 0)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.gst') }}</span>
-                                    <span class="text-sm leading-6 capitalize">{{ currencyFormat($order->gst_amount) }}</span>
+                                    <span
+                                        class="text-sm leading-6 capitalize">{{ currencyFormat($order->gst_amount) }}</span>
                                 </li>
                             @endif
-                            
+
                             @if ($order->order_type !== App\Enums\OrderTypeStatus::PICKUP)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.delivery_charge') }}</span>
-                                    <span class="text-sm leading-6 capitalize font-semibold text-[#1AB759]">{{ currencyFormat($order->delivery_charge ?? 0) }}</span>
+                                    <span
+                                        class="text-sm leading-6 capitalize font-semibold text-[#1AB759]">{{ currencyFormat($order->delivery_charge ?? 0) }}</span>
                                 </li>
                             @endif
 
                             @if (($order->search_fee ?? 0) > 0)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.search_fee') }}</span>
-                                    <span class="text-sm leading-6 capitalize">{{ currencyFormat($order->search_fee) }}</span>
+                                    <span
+                                        class="text-sm leading-6 capitalize">{{ currencyFormat($order->search_fee) }}</span>
                                 </li>
                             @endif
 
                             @if (($order->handling_fee ?? 0) > 0)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.handling_fee') }}</span>
-                                    <span class="text-sm leading-6 capitalize">{{ currencyFormat($order->handling_fee) }}</span>
+                                    <span
+                                        class="text-sm leading-6 capitalize">{{ currencyFormat($order->handling_fee) }}</span>
                                 </li>
                             @endif
 
                             @if (($order->packaging_fee ?? 0) > 0)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.packaging_fee') }}</span>
-                                    <span class="text-sm leading-6 capitalize">{{ currencyFormat($order->packaging_fee) }}</span>
+                                    <span
+                                        class="text-sm leading-6 capitalize">{{ currencyFormat($order->packaging_fee) }}</span>
                                 </li>
                             @endif
 
                             @if (($order->packing_charge ?? 0) > 0)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.packing_charge') }}</span>
-                                    <span class="text-sm leading-6 capitalize">{{ currencyFormat($order->packing_charge) }}</span>
+                                    <span
+                                        class="text-sm leading-6 capitalize">{{ currencyFormat($order->packing_charge) }}</span>
                                 </li>
                             @endif
 
                             @if (($order->platform_fee ?? 0) > 0)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.platform_fee') }}</span>
-                                    <span class="text-sm leading-6 capitalize">{{ currencyFormat($order->platform_fee) }}</span>
+                                    <span
+                                        class="text-sm leading-6 capitalize">{{ currencyFormat($order->platform_fee) }}</span>
                                 </li>
                             @endif
 
                             @if (($order->large_order_fee ?? 0) > 0)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.large_order_fee') }}</span>
-                                    <span class="text-sm leading-6 capitalize">{{ currencyFormat($order->large_order_fee) }}</span>
+                                    <span
+                                        class="text-sm leading-6 capitalize">{{ currencyFormat($order->large_order_fee) }}</span>
                                 </li>
                             @endif
 
                             @if (($order->surge_fee ?? 0) > 0)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.surge_fee') }}</span>
-                                    <span class="text-sm leading-6 capitalize">{{ currencyFormat($order->surge_fee) }}</span>
+                                    <span
+                                        class="text-sm leading-6 capitalize">{{ currencyFormat($order->surge_fee) }}</span>
                                 </li>
                             @endif
 
                             @if (($order->tip_amount ?? 0) > 0)
                                 <li class="flex items-center justify-between text-heading">
                                     <span class="text-sm leading-6 capitalize">{{ __('levels.tip') }}</span>
-                                    <span class="text-sm leading-6 capitalize">{{ currencyFormat($order->tip_amount) }}</span>
+                                    <span
+                                        class="text-sm leading-6 capitalize">{{ currencyFormat($order->tip_amount) }}</span>
                                 </li>
                             @endif
 
+                            @if (($order->discount ?? 0) > 0)
+                                <li class="flex items-center justify-between text-heading">
+                                    <span class="text-sm leading-6 capitalize">{{ __('levels.discount') }}</span>
+                                    <span class="text-sm leading-6 capitalize text-red-500">-
+                                        {{ currencyFormat($order->discount) }}</span>
+                                </li>
+                            @endif
                         </ul>
+
                         <div class="flex items-center justify-between px-5 py-4 border-t border-dashed border-[#EFF0F6]">
                             <h4 class="text-sm leading-6 font-bold capitalize">{{ __('levels.total') }}</h4>
-                            <h5 class="text-sm leading-6 font-bold capitalize text-primary">{{ currencyFormat($order->total ?? 0) }}</h5>
+                            <h5 class="text-sm leading-6 font-bold capitalize text-primary">
+                                {{ currencyFormat($order->total ?? 0) }}</h5>
                         </div>
-                        
+
                         @if (($order->paid_amount ?? 0) > 0)
                             <div class="flex items-center justify-between px-5 py-3 border-t border-[#EFF0F6]">
                                 <span class="text-sm leading-6 capitalize">{{ __('levels.paid_amount') }}</span>
-                                <span class="text-sm leading-6 capitalize font-semibold text-green-600">{{ currencyFormat($order->paid_amount) }}</span>
+                                <span
+                                    class="text-sm leading-6 capitalize font-semibold text-green-600">{{ currencyFormat($order->paid_amount) }}</span>
                             </div>
                         @endif
                     </div>
                 </div>
-                
+
+                <!-- YAHAN COUPON DETAILS KA CARD ADD KIYA HAI -->
+                @if ($order->discounts && $order->discounts->count())
+                    <div class="col-12 mt-4">
+                        <div class="db-card">
+                            <div class="db-card-header">
+                                <h3 class="db-card-title">
+                                    {{ __('levels.applied_coupon') ?? 'Applied Coupon' }}
+                                </h3>
+                            </div>
+
+                            <div class="db-card-body">
+                                @foreach ($order->discounts as $discount)
+                                    <div class="flex items-center justify-between gap-4 py-3 border-b last:border-b-0 border-[#EFF0F6]">
+
+                                        <div>
+                                            <p class="text-sm font-semibold text-heading">
+                                                {{ $discount->coupons->name ?? 'Coupon' }}
+                                            </p>
+
+                                            @if ($discount->coupons)
+                                                <p class="text-xs text-gray-500 mt-1">
+                                                    {{ $discount->coupons->slug ?? '' }}
+                                                </p>
+                                            @endif
+                                        </div>
+
+                                        <div class="text-right">
+                                            <p class="text-sm font-semibold text-green-600">
+                                                - {{ currencyFormat($discount->amount ?? 0) }}
+                                            </p>
+
+                                            <p class="text-xs text-gray-500">
+                                                {{ __('levels.discount') }}
+                                            </p>
+                                        </div>
+
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
+                <!-- COUPON END -->
+
                 <div class="col-12 mt-4">
                     <div class="db-card">
                         <div class="db-card-header">
@@ -343,14 +419,13 @@
                         <div class="db-card-body">
                             <!-- YAHAN USER IMAGE PAR FALLBACK ADD KIYA HAI -->
                             <div class="flex items-center gap-3 mb-4">
-                                <img class="w-8 h-8 rounded-full object-cover" 
-                                     src="{{ $order->user->image ?? asset('images/default/user.png') }}" 
-                                     alt="avatar">
+                                <img class="w-8 h-8 rounded-full object-cover"
+                                    src="{{ $order->user->image ?? asset('images/default/user.png') }}" alt="avatar">
                                 <h4 class="font-semibold text-sm capitalize text-[#374151]">
                                     {{ $order->user->name ?? 'Guest Customer' }}
                                 </h4>
                             </div>
-                            
+
                             <ul class="flex flex-col gap-3 py-4 border-t border-[#EFF0F6]">
                                 <li class="flex items-center gap-2.5">
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
@@ -376,14 +451,13 @@
                                             d="M12.3333 6.00033C12.3333 5.60033 12.02 4.98699 11.5533 4.48699C11.1267 4.02699 10.56 3.66699 10 3.66699"
                                             stroke="#6E7191" stroke-width="1.5" stroke-linecap="round"
                                             stroke-linejoin="round" />
-                                        <path d="M14.6667 6.00016C14.6667 3.42016 12.58 1.3335 10 1.3335"
-                                            stroke="#6E7191" stroke-width="1.5" stroke-linecap="round"
-                                            stroke-linejoin="round" />
+                                        <path d="M14.6667 6.00016C14.6667 3.42016 12.58 1.3335 10 1.3335" stroke="#6E7191"
+                                            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
                                     <span class="text-sm text-[#374151]">{{ $order->mobile ?? null }}</span>
                                 </li>
                             </ul>
-                            
+
                             <!-- YAHAN ADDRESS KE LIYE SAFE IF CHECK ADD KIYA -->
                             @if ($order->order_type != 2 && !blank($order->address))
                                 <div class="flex items-start gap-3 pt-4 border-t border-[#EFF0F6]">
@@ -408,7 +482,6 @@
     =====================================-->
 
     <section class="section">
-
         <div id="invoice-print" class="hidden">
             <div class="invoice">
                 <style>
@@ -419,12 +492,12 @@
                         padding: 8px;
                         font-family: 'OpenSauceOne', sans-serif;
                     }
-        
+
                     p {
                         margin-top: 4px;
                         margin-bottom: 0px;
                     }
-        
+
                     h2,
                     h3 {
                         font-size: 32px;
@@ -432,76 +505,82 @@
                         margin-top: 4px;
                         margin-bottom: 2px;
                     }
-        
+
                     h3 {
                         font-size: 28px;
                         margin-bottom: 8px;
                     }
-        
+
                     p,
                     td {
                         font-size: 16px;
                     }
-        
+
                     .invoiceFooter p {
                         font-size: 14px;
                         font-weight: 400;
-        
+
                     }
-        
+
                     .invoiceFooter small {
                         font-size: 12px;
                         margin-top: 24px;
                     }
-        
+
                     .border-dashed {
                         border-top: 1px dashed gainsboro;
                         margin: 0 25px 0 25px;
                     }
-        
+
                     .text-center {
                         text-align: center;
                     }
-        
+
                     .text-start {
                         text-align: start;
                     }
-        
+
                     .text-end {
                         text-align: end;
                     }
-        
+
                     .align-top {
                         vertical-align: top;
                     }
-        
+
                     .min-w-80 {
                         min-width: 80px;
                         width: 80px;
                     }
-        
+
                     ul {
                         list-style: none;
                         padding-left: 0px;
                     }
-                    .ps-5{
+
+                    .ps-5 {
                         padding-left: 80px;
                     }
-                    table{
+
+                    table {
                         margin: auto;
                         width: 90%;
                         border-top: 1px dashed gainsboro;
                     }
-                    .mt-2{
+
+                    .mt-2 {
                         margin-top: 4px;
                     }
-                    .mb-2{
+
+                    .mb-2 {
                         margin-bottom: 10px;
                     }
-                    .pb-2{
+
+                    .pb-2 {
                         padding-bottom: 10px;
                     }
-                    .pt-3{
+
+                    .pt-3 {
                         padding-top: 8px;
                     }
                 </style>
@@ -528,24 +607,25 @@
                     </thead>
                     <tbody>
 
-                    @foreach ($items as $itemKey => $item)
-                        <tr>
-                            <td class="text-start align-top pb-2 min-w-80"> {{ $item->quantity }}</td>
-                            <td class="text-start pb-2"> 
-                                <!-- PRINT SECTION ME BHI VARIATION FIX KIYA -->
-                                {{ $item->menuItem->name }} {{ $item->variation ? ' ( ' . $item->variation->name . ' )' : '' }} 
-                                @if (!blank($item->options))
-                                    @foreach (json_decode($item->options, true) as $option)
-                                    <span class="block">
-                                        <small>{{ $option['name'] }}</small>
-                                    </span>
-                                    @endforeach
-                                @endif
-                            </td>
-                            <td class="text-end align-top pb-2 min-w-80"> {{ currencyFormat($item->item_total) }}</td>
-                        </tr>
-                    @endforeach
-                        
+                        @foreach ($items as $itemKey => $item)
+                            <tr>
+                                <td class="text-start align-top pb-2 min-w-80"> {{ $item->quantity }}</td>
+                                <td class="text-start pb-2">
+                                    <!-- PRINT SECTION ME BHI VARIATION FIX KIYA -->
+                                    {{ $item->menuItem->name }}
+                                    {{ $item->variation ? ' ( ' . $item->variation->name . ' )' : '' }}
+                                    @if (!blank($item->options))
+                                        @foreach (json_decode($item->options, true) as $option)
+                                            <span class="block">
+                                                <small>{{ $option['name'] }}</small>
+                                            </span>
+                                        @endforeach
+                                    @endif
+                                </td>
+                                <td class="text-end align-top pb-2 min-w-80"> {{ currencyFormat($item->item_total) }}</td>
+                            </tr>
+                        @endforeach
+
                     </tbody>
                 </table>
                 <table class="border-dashed ps-5 pt-3">
@@ -559,12 +639,12 @@
                             <td class="text-end align-top">{{ currencyFormat($order->delivery_charge) }}</td>
                         </tr>
                         @if ($order->discount && $order->discount > 0)
-                        <tr>
-                            <td class="text-start"> {{ __('frontend.discount') }}: </td>
-                            <td class="text-end align-top">
-                                {{ currencyFormat($order->discount) }}
-                            </td>
-                        </tr>
+                            <tr>
+                                <td class="text-start"> {{ __('frontend.discount') }}: </td>
+                                <td class="text-end align-top">
+                                    {{ currencyFormat($order->discount) }}
+                                </td>
+                            </tr>
                         @endif
                         <tr>
                             <td class="text-start"> {{ __('frontend.total') }}:</td>
@@ -608,23 +688,20 @@
                 </div>
             </div>
         </div>
-    </div>
-</section>
-@php
-    $baseUrl = env('APP_URL');
-@endphp
+    </section>
+    @php
+        $baseUrl = env('APP_URL');
+    @endphp
 @endsection
 
 @push('js')
-    <script ></script>
     <script>
-
         $('#orderStatus').on('change', function() {
             let orderId = $(this).data('id');
             let path = $(this).data('url');
             let status = $(this).val();
-            let url = "{{$baseUrl}}" + path + orderId + "/" + status;
-            
+            let url = "{{ $baseUrl }}" + path + orderId + "/" + status;
+
             if (status) {
                 $.ajax({
                     url: url,
@@ -636,9 +713,8 @@
             } else {
                 console.log('Something went wrong!');
             }
-            
-        });
 
+        });
     </script>
     <script src="{{ asset('backend/js/print.js') }}"></script>
 @endpush

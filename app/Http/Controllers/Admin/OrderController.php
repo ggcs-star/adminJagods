@@ -25,6 +25,7 @@ use App\Http\Services\OrderService;
 use App\Notifications\OrderUpdated;
 use App\Http\Controllers\BackendController;
 use App\Models\Invoice;
+use App\Models\Coupon;
 class OrderController extends BackendController
 {
     /**
@@ -79,11 +80,43 @@ public function show($id)
         ])
         ->findOrFail($id);
 
-    // Invoice ko direct order ke invoice_id se fetch karo.
-    $order->setRelation(
-        'invoice',
-        Invoice::query()->find($order->invoice_id)
-    );
+    /*
+    |--------------------------------------------------------------------------
+    | Load Coupon Data Without Changing Models
+    |--------------------------------------------------------------------------
+    */
+    if ($order->discounts->isNotEmpty()) {
+
+        $couponIds = $order->discounts
+            ->pluck('coupon_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $coupons = Coupon::query()
+            ->whereIn('id', $couponIds)
+            ->get()
+            ->keyBy('id');
+
+        $order->discounts->each(function ($discount) use ($coupons) {
+            $discount->setRelation(
+                'coupons',
+                $coupons->get($discount->coupon_id)
+            );
+        });
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Load Invoice Without Changing Model Relation
+    |--------------------------------------------------------------------------
+    */
+    if (!empty($order->invoice_id)) {
+        $order->setRelation(
+            'invoice',
+            Invoice::query()->find($order->invoice_id)
+        );
+    }
 
     $this->data['order'] = $order;
     $this->data['items'] = $order->items;
@@ -139,20 +172,20 @@ public function show($id)
                     $deliveryBoyWeb = User::role($role->name)->whereNotNull('web_token')->get();
                     if (!blank($deliveryBoy)) {
                         foreach ($deliveryBoy as $delivery) {
-                            app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $delivery,'deliveryboy');
+                            app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $delivery, 'deliveryboy');
                         }
                     }
                     if (!blank($deliveryBoyWeb)) {
                         foreach ($deliveryBoyWeb as $deliveryweb) {
-                            app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $deliveryweb,'deliveryboy');
+                            app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $deliveryweb, 'deliveryboy');
                         }
                     }
                 } else {
                     if (!blank($order->delivery_boy_id)) {
-                        app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $order->delivery,'deliveryboy');
+                        app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $order->delivery, 'deliveryboy');
                     }
                 }
-                app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $order->user,'customer');
+                app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $order->user, 'customer');
             } catch (\Exception $e) {
             }
             return redirect(route('admin.orders.index'))->withSuccess('Order successfully updated');
@@ -199,7 +232,7 @@ public function show($id)
     public function getOrder(Request $request)
     {
         if (request()->ajax()) {
-            if ( !empty($request->status) || !empty($request->code) || !empty($request->orderType || !empty($request->startDate)) ) {
+            if (!empty($request->status) || !empty($request->code) || !empty($request->orderType || !empty($request->startDate))) {
                 $startDate = $request->startDate;
                 $endDate   = $request->endDate;
                 $orderType = $request->orderType;
@@ -216,7 +249,7 @@ public function show($id)
                         $query->where('status', $status);
                     }
                     if (!blank($code)) {
-                        $query->where('misc->order_code', 'like', '%'.$code.'%');
+                        $query->where('misc->order_code', 'like', '%' . $code . '%');
                     }
                     if (!blank($orderType)) {
                         $query->where('order_type', $orderType);
@@ -277,9 +310,9 @@ public function show($id)
             return Datatables::of($orderArray)
                 ->addColumn('action', function ($order) {
                     $retAction = [];
-                    $retAction['view'] = ['route' => route('admin.orders.show', $order),'permission' => 'orders_show'];
+                    $retAction['view'] = ['route' => route('admin.orders.show', $order), 'permission' => 'orders_show'];
                     if ($order->delivery_boy_id && auth()->user()->id != $order->delivery_boy_id) {
-                        $retAction['delivery'] = ['route' => route('admin.orders.delivery', $order),'permission' => 'orders_show'];
+                        $retAction['delivery'] = ['route' => route('admin.orders.delivery', $order), 'permission' => 'orders_show'];
                     }
                     return action_button($retAction);
                 })
@@ -319,9 +352,9 @@ public function show($id)
             if ($order->status == OrderStatus::PENDING) {
                 $allowStatus = [OrderStatus::ACCEPT, OrderStatus::REJECT];
             } elseif ($order->status == OrderStatus::ACCEPT) {
-                if($order->order_type == OrderTypeStatus::PICKUP){
+                if ($order->order_type == OrderTypeStatus::PICKUP) {
                     $allowStatus = [OrderStatus::COMPLETED];
-                }else {
+                } else {
                     $allowStatus = [OrderStatus::PROCESS];
                 }
             }
@@ -404,21 +437,22 @@ public function show($id)
                     $deliveryBoyWeb = User::role($role->name)->whereNotNull('web_token')->get();
                     if (!blank($deliveryBoy)) {
                         foreach ($deliveryBoy as $delivery) {
-                            app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $delivery,'deliveryboy');
+                            app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $delivery, 'deliveryboy');
                         }
                     }
                     if (!blank($deliveryBoyWeb)) {
                         foreach ($deliveryBoyWeb as $deliveryweb) {
-                            app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $deliveryweb,'deliveryboy');
+                            app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $deliveryweb, 'deliveryboy');
                         }
                     }
                 } else {
                     if (!blank($order->delivery_boy_id)) {
-                        app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $order->delivery,'deliveryboy');
+                        app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $order->delivery, 'deliveryboy');
                     }
                 }
-                app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $order->user,'customer');
-            } catch (\Exception $e) {}
+                app(PushNotificationService::class)->sendNotificationOrderUpdate($order, $order->user, 'customer');
+            } catch (\Exception $e) {
+            }
             return redirect()->back()->withSuccess('Order successfully updated');
         } else {
             return redirect()->back()->withError($orderService->message);

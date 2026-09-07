@@ -129,7 +129,7 @@ return [
     | Boolean value
     |
     */
-    'updaterEnabled' => 'true',
+    'updaterEnabled' => true,
 
     /* purchase code verification objects */
 

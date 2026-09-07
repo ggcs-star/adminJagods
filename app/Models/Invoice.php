@@ -6,7 +6,6 @@ use App\Enums\TransactionType;
 use App\Models\User;
 use App\Traits\Uuids;
 
-
 class Invoice extends BaseModel
 {
     use Uuids;
