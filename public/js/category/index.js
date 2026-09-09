@@ -12,36 +12,89 @@ load_data();
 $('#date-search').on('click', function () {
     let status    = $('#status').val();
     let requested = $('#requested').val();
+
     $('#maintable').DataTable().destroy();
+
     load_data(status, requested);
 });
 
 $('#refresh').on('click', function () {
     $('#status').val('');
     $('#requested').val('');
+
     $('#maintable').DataTable().destroy();
+
     load_data();
 });
 
 function load_data(status = '', requested = '') {
+
     var table = $('#maintable').DataTable({
-        processing : true,
-        serverSide : true,
-        ajax : {
-            url : $('#maintable').attr('data-url'),
-            data : {'status' : status, 'requested' : requested}
+
+        processing: true,
+        serverSide: true,
+
+        ajax: {
+            url: $('#maintable').attr('data-url'),
+            data: {
+                status: status,
+                requested: requested
+            }
         },
+
         columns: [
-            { data: 'name', name: 'name' },
-            { data: 'created_by', name: 'created_by' },
-            { data: 'status', name: 'status' },
-            { data: 'action', name: 'action' },
+
+            // Category Name
+            {
+                data: 'name',
+                name: 'name'
+            },
+
+            // Category Group
+            {
+                data: null,
+                name: 'category_group',
+                render: function (data, type, row) {
+
+                    return row.category_group?.name ?? '-';
+                }
+            },
+
+            // Main Category
+            {
+                data: null,
+                name: 'main_category',
+                render: function (data, type, row) {
+
+                    // Agar sub-category hai to parent ka name
+                    if (row.parent?.name) {
+                        return row.parent.name;
+                    }
+
+                    // Agar main category hai to uska own name
+                    return row.name ?? '-';
+                }
+            },
+
+            // Status
+            {
+                data: 'status',
+                name: 'status'
+            },
+
+            // Action
+            {
+                data: 'action',
+                name: 'action'
+            }
+
         ],
-        "ordering" : false
+
+        ordering: false
     });
 
     // let hidecolumn = $('#maintable').data('hidecolumn');
-    // if(!hidecolumn) {
-    //     table.column( 5 ).visible( false );
+    // if (!hidecolumn) {
+    //     table.column(5).visible(false);
     // }
 }
