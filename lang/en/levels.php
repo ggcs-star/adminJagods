@@ -27,6 +27,7 @@ return array(
   'change_your_status'                => 'Change Your Status',
   'select_your_status'                => 'Select Your Status',
   'restaurant_address'                => 'Restaurant Address',
+  'display_module'                        => 'Display Module',
   'restaurant_image'                  => 'Restaurant Image',
   'opening_time'                      => 'Opening Time',
   'closing_time'                      => 'Closing Time',

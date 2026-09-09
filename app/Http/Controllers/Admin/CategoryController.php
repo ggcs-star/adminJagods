@@ -11,6 +11,8 @@ use App\Enums\CategoryStatus;
 use Yajra\Datatables\Datatables;
 use App\Http\Requests\CategoryRequest;
 use App\Http\Controllers\BackendController;
+use App\Models\CategoryGroup;
+use App\Models\Module;
 
 class CategoryController extends BackendController
 {
@@ -25,7 +27,6 @@ class CategoryController extends BackendController
         $this->middleware(['permission:category_create'])->only('create', 'store');
         $this->middleware(['permission:category_edit'])->only('edit', 'update');
         $this->middleware(['permission:category_delete'])->only('destroy');
-
     }
 
     public function index(Request $request)
@@ -40,7 +41,19 @@ class CategoryController extends BackendController
             ->orderBy('name')
             ->get();
 
-        return view('admin.category.create', compact('categories'));
+        $categoryGroups = CategoryGroup::where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+        $modules = Module::where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.category.create', compact(
+            'categories',
+            'categoryGroups',
+            'modules'
+        ));
     }
 
 
@@ -114,7 +127,7 @@ class CategoryController extends BackendController
         if (request()->ajax()) {
             $queryArray = [];
 
-            if (!auth()->user()->myrole == UserRole::ADMIN) {
+            if ((int) auth()->user()->myrole !== UserRole::ADMIN) {
                 $queryArray['status'] = Status::ACTIVE;
             }
 
@@ -125,7 +138,15 @@ class CategoryController extends BackendController
                 $queryArray['requested'] = $request->requested;
             }
 
-            $categories = Category::where($queryArray)->descending()->get();
+            // Eager load relations (N+1 query issue prevent karne ke liye)
+            $categories = Category::with([
+                'categoryGroup:id,name',
+                'parent:id,name'
+            ])
+                ->where($queryArray)
+                ->descending()
+                ->get();
+
             return Datatables::of($categories)
                 ->addColumn('action', function ($category) {
                     $button_array = [];
@@ -137,15 +158,25 @@ class CategoryController extends BackendController
                 ->editColumn('status', function ($category) {
                     return $category->statusName;
                 })
-                ->editColumn('created_by', function ($category) {
-                    return optional($category->creator)->name;
-                })
-                ->rawColumns(['action'])
+                ->addColumn('category_hierarchy', function ($category) {
+                    // Agar subcategory hai to uske parent aur group dono ka naam dikhayega
+                    if ($category->parent) {
+                        $groupName = $category->categoryGroup?->name;
 
+                        return $groupName
+                            ? $groupName . ' → ' . $category->parent->name
+                            : $category->parent->name;
+                    }
+
+                    // Agar main category hai to sirf group ka naam dikhayega
+                    return $category->categoryGroup?->name ?? '-';
+                })
+                // created_by yahan se pura hata diya gaya hai
+                ->rawColumns(['action'])
                 ->escapeColumns([])
                 ->make(true);
-
         }
+
         return view('admin.category.index');
     }
 }
