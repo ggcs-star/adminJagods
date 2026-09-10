@@ -27,7 +27,6 @@ class CuisineController extends BackendController
         $this->middleware(['permission:cuisine_create'])->only('create', 'store');
         $this->middleware(['permission:cuisine_edit'])->only('edit', 'update');
         $this->middleware(['permission:cuisine_delete'])->only('destroy');
-
     }
     /**
      * Display a listing of the resource.
@@ -57,6 +56,7 @@ class CuisineController extends BackendController
     {
         $cuisine              = new Cuisine;
         $cuisine->name        = $request->name;
+        $cuisine->restroType = $request->restroType;
         $cuisine->description = $request->description;
         $cuisine->parent_id   = 0;
         $cuisine->depth       = 0;
@@ -96,6 +96,7 @@ class CuisineController extends BackendController
         $cuisine              = Cuisine::owner()->findOrFail($id);
 
         $cuisine->name        = $request->name;
+        $cuisine->restroType = $request->restroType;
         $cuisine->description = $request->description;
         $cuisine->parent_id   = 0;
         $cuisine->depth       = 0;
@@ -143,11 +144,11 @@ class CuisineController extends BackendController
             $i = 0;
             return Datatables::of($cuisines)
                 ->addColumn('action', function ($cuisine) {
-                    
+
                     $button_array   = [];
-                    $button_array['edit']   = ['route' => route('admin.cuisine.edit', $cuisine),'permission' => 'category_edit'];
-                    $button_array['delete'] = ['route' => route('admin.cuisine.destroy', $cuisine),'permission' => 'category_delete'];
-                    
+                    $button_array['edit']   = ['route' => route('admin.cuisine.edit', $cuisine), 'permission' => 'category_edit'];
+                    $button_array['delete'] = ['route' => route('admin.cuisine.destroy', $cuisine), 'permission' => 'category_delete'];
+
                     return action_button($button_array);
                 })
                 ->editColumn('status', function ($cuisine) {
@@ -156,7 +157,7 @@ class CuisineController extends BackendController
                 ->editColumn('created_by', function ($cuisine) {
                     return optional($cuisine->creator)->name;
                 })
-                ->rawColumns(['status','action'])
+                ->rawColumns(['status', 'action'])
                 ->make(true);
         }
         return view('admin.cuisine.index');
