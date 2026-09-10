@@ -37,7 +37,10 @@ class CategoryController extends BackendController
 
     public function create()
     {
-        $categories = Category::where('parent_id', 0)
+        $categories = Category::where(function ($query) {
+            $query->where('parent_id', 0)
+                ->orWhereNull('parent_id');
+        })
             ->orderBy('name')
             ->get();
 
@@ -60,11 +63,15 @@ class CategoryController extends BackendController
     public function store(CategoryRequest $request)
     {
         $category = new Category;
+
         $category->name = $request->name;
         $category->description = $request->description;
-        $category->parent_id = $request->parent_id ?? 0;
 
-        if ($category->parent_id == 0) {
+        // Main category = NULL, subcategory = selected parent ID
+        $category->parent_id = $request->parent_id ?: null;
+
+        // Depth calculation
+        if (is_null($category->parent_id)) {
             $category->depth = 0;
         } else {
             $parent = Category::find($category->parent_id);
@@ -73,8 +80,15 @@ class CategoryController extends BackendController
 
         $category->left = 0;
         $category->right = 0;
-
         $category->status = $request->status ?: Status::INACTIVE;
+
+        $category->category_group_id = $request->category_group_id;
+        $category->module_id = $request->module_id;
+        $category->sort_order = $request->sort_order ?? 0;
+
+        // Array ko directly assign karo.
+        // Model cast JSON me automatically convert karega.
+        $category->display_module_id = $request->display_module_id ?: null;
 
         $category->save();
 
@@ -92,6 +106,22 @@ class CategoryController extends BackendController
     public function edit($id)
     {
         $this->data['category'] = Category::owner()->findOrFail($id);
+
+        $this->data['categories'] = Category::where(function ($query) {
+            $query->where('parent_id', 0)
+                ->orWhereNull('parent_id');
+        })
+            ->orderBy('name')
+            ->get();
+
+        $this->data['categoryGroups'] = CategoryGroup::where('status', 1)
+            ->orderBy('name')
+            ->get();
+
+        $this->data['modules'] = Module::where('status', 1)
+            ->orderBy('name')
+            ->get();
+
         return view('admin.category.edit', $this->data);
     }
 
@@ -99,20 +129,43 @@ class CategoryController extends BackendController
     public function update(CategoryRequest $request, $id)
     {
         $category = Category::owner()->findOrFail($id);
+
         $category->name = $request->name;
         $category->description = $request->description;
-        $category->parent_id = 0;
-        $category->depth = 0;
-        $category->left = 0;
-        $category->right = 0;
+
+        // Main category = NULL
+        $category->parent_id = $request->parent_id ?: null;
+
+        // Depth calculation
+        if (is_null($category->parent_id)) {
+            $category->depth = 0;
+        } else {
+            $parent = Category::find($category->parent_id);
+            $category->depth = $parent ? $parent->depth + 1 : 1;
+        }
+
+        if ($request->has('status')) {
+            $category->status = $request->status;
+        }
+
+        $category->category_group_id = $request->category_group_id;
+        $category->module_id = $request->module_id;
+        $category->sort_order = $request->sort_order ?? 0;
+
+        // Do NOT json_encode()
+        $category->display_module_id = $request->display_module_id ?: null;
+
         $category->save();
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $category->media()->delete($id);
-            $category->addMediaFromRequest('image')->toMediaCollection('categories');
+            $category->clearMediaCollection('categories');
+
+            $category->addMediaFromRequest('image')
+                ->toMediaCollection('categories');
         }
 
-        return redirect(route('admin.category.index'))->withSuccess('The data updated successfully.');
+        return redirect(route('admin.category.index'))
+            ->withSuccess('The data updated successfully.');
     }
 
 

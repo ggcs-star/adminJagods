@@ -17,7 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Yajra\Datatables\Datatables;
-
+use App\Enums\Module;
 class MenuItemController extends BackendController
 {
 
@@ -52,11 +52,21 @@ class MenuItemController extends BackendController
      * @return \Illuminate\Http\Response
      */
     public function create()
-    {
-        $this->data['categories'] = Category::where(['status' => CategoryStatus::ACTIVE])->get();
-        $this->data['restaurants'] = Restaurant::where(['status' => Status::ACTIVE])->get();
-        return view('admin.menu-item.create', $this->data);
-    }
+{
+    $this->data['categories'] = Category::where(
+        'status',
+        CategoryStatus::ACTIVE
+    )->get();
+
+    $this->data['restaurants'] = Restaurant::where(
+        'status',
+        Status::ACTIVE
+    )->get();
+
+    $this->data['modules'] = Module::all();
+
+    return view('admin.menu-item.create', $this->data);
+}
 
     /**
      * @param MenuItemRequest $request
@@ -77,12 +87,17 @@ class MenuItemController extends BackendController
         $menuItem->name = $request->get('name');
         $menuItem->description = $request->get('description');
         $menuItem->unit_price = $request->get('unit_price');
+        $menuItem->module_id = $request->get('module_id');
         $menuItem->discount_price = $request->get('discount_price') ?? 0;
         $menuItem->restroType = $request->get('restroType') ?? 'veg';
         $menuItem->max_cart_quantity = $request->get('max_cart_quantity');
         $menuItem->status = $request->get('status');
         $menuItem->menu_number = $menuNumber;
-        $menuItem->save();
+        $menuItem->petpooja_restaurantid = 'df';
+        $menuItem->petpooja_itemid = 'df';
+        $menuItem->petpooja_itemname = 'df';
+        $menuItem->petpooja_price = 00.00;
+        $menuItem->save();;
 
         $menuItem->categories()->sync($request->get('categories'));
 
@@ -117,6 +132,7 @@ class MenuItemController extends BackendController
         $this->data['categories'] = Category::where(['status' => CategoryStatus::ACTIVE])->get();
         $this->data['menuItem_categories'] = $menuItem->categories()->pluck('id')->toArray();
         $this->data['restaurants'] = Restaurant::where(['status' => Status::ACTIVE])->get();
+        $this->data['modules'] = Module::all();
         // dd( $this->data['menuItem']);
         return view('admin.menu-item.edit', $this->data);
     }
@@ -129,9 +145,11 @@ class MenuItemController extends BackendController
      */
     public function update(MenuItemRequest $request, $id)
     {
+        // dd($request->all());
         $menuItem = MenuItem::owner()->findOrFail($id);
         $menuItem->restaurant_id = $request->get('restaurant_id');
         $menuItem->name = $request->get('name');
+        $menuItem->module_id = $request->get('module_id');
         $menuItem->description = $request->get('description');
         $menuItem->unit_price = $request->get('unit_price');
         $menuItem->discount_price = $request->get('discount_price') ?? 0;
@@ -392,7 +410,6 @@ class MenuItemController extends BackendController
             $menuItem->unit_price = $smallPrice;
             $menuItem->discount_price = $smallDiscountPrice ?? 0;
             $menuItem->save();
-
         } else {
             MenuItemVariation::where(['menu_item_id' => $menuItem->id, 'restaurant_id' => $menuItem->restaurant_id])->delete();
         }

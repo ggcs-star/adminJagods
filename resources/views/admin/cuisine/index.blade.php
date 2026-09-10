@@ -1,12 +1,11 @@
 @extends('admin.app')
 
 @section('content')
-
-  <div class="row">
-    <div class="col-12">
-        <div class="custome-breadcrumb">
-            {{ Breadcrumbs::render('cuisines') }}
-        </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="custome-breadcrumb">
+                {{ Breadcrumbs::render('cuisines') }}
+            </div>
         </div>
 
         <div class="col-12">
@@ -26,19 +25,20 @@
                         @endcan
                     </div>
                 </div>
-    
+
                 <div class="table-filter-div input-group input-daterange" id="date-picker" style="">
                     <div class="p-5 mb-8">
                         <div class="row">
                             <div class="col-4 sm:col-4">
                                 <label class="db-field-title">{{ __('levels.status') }}</label>
                                 <div class="db-field-down-arrow">
-                                    <select name="status" id="status" class="db-field-control appearance-none @error('status') invalid @enderror">
+                                    <select name="status" id="status"
+                                        class="db-field-control appearance-none @error('status') invalid @enderror">
                                         <option value="">---</option>
                                         @foreach (trans('statuses') as $key => $status)
-                                        <option value="{{ $key }}">
-                                            {{ $status }}
-                                        </option>
+                                            <option value="{{ $key }}">
+                                                {{ $status }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -46,12 +46,13 @@
                             <div class="col-4 sm:col-4">
                                 <label class="db-field-title">{{ __('levels.request') }}</label>
                                 <div class="db-field-down-arrow">
-                                    <select name="requested" id="requested" class="db-field-control appearance-none @error('status') invalid @enderror">
+                                    <select name="requested" id="requested"
+                                        class="db-field-control appearance-none @error('status') invalid @enderror">
                                         <option value="">---</option>
                                         @foreach (trans('category_requests') as $key => $requested)
-                                        <option value="{{ $key }}">
-                                            {{ $requested }}
-                                        </option>
+                                            <option value="{{ $key }}">
+                                                {{ $requested }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -70,9 +71,11 @@
                         </div>
                     </div>
                 </div>
-    
+
                 <div class="db-table-responsive">
-                    <table class="db-table table stripe" id="maintable" data-url="{{ route('admin.cuisine.index') }}" data-status="{{ \App\Enums\Status::ACTIVE }}" data-hidecolumn="{{ auth()->user()->can('cuisine_edit') || auth()->user()->can('cuisine_delete') }}">
+                    <table class="db-table table stripe" id="maintable" data-url="{{ route('admin.cuisine.index') }}"
+                        data-status="{{ \App\Enums\Status::ACTIVE }}"
+                        data-hidecolumn="{{ auth()->user()->can('cuisine_edit') || auth()->user()->can('cuisine_delete') }}">
                         <thead class="db-table-head">
                             <tr class="db-table-head-tr">
                                 <th class="db-table-head-th">{{ __('levels.name') }}</th>
@@ -87,7 +90,6 @@
         </div>
 
     </div>
-
 @endsection
 
 
@@ -95,7 +97,7 @@
 @push('css')
     <link rel="stylesheet" href="{{ asset('backend/lib/datatable/css/dataTables.tailwindcss.css') }}">
 @endpush
-    
+
 @push('js')
     <script src="{{ asset('backend/lib/datatable/js/dataTables.js') }}"></script>
     <script src="{{ asset('backend/lib/datatable/js/dataTables.tailwindcss.js') }}"></script>

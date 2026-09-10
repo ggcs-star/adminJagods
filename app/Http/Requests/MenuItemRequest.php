@@ -9,25 +9,16 @@ use Illuminate\Validation\Rule;
 
 class MenuItemRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function authorize()
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules()
     {
-
+        // dd($this->all());
         return [
+            'module_id' => ['required','integer',Rule::in([1, 2]),],
             'restaurant_id'  => ['required', 'numeric'],
             'name'           => ['required', 'string', 'max:255'],
             'categories.*'   => 'nullable',
@@ -43,9 +34,10 @@ class MenuItemRequest extends FormRequest
     public function attributes()
     {
         return [
-            'name'   => trans('validation.attributes.name'),
-            'image'  => trans('validation.attributes.image'),
-            'status' => trans('validation.attributes.status'),
+            'module_id' => 'module',
+            'name'      => trans('validation.attributes.name'),
+            'image'     => trans('validation.attributes.image'),
+            'status'    => trans('validation.attributes.status'),
         ];
     }
 
@@ -53,10 +45,17 @@ class MenuItemRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             if ($this->menuItemNameUniqueCheck()) {
-                $validator->errors()->add('name', 'The menu item name already exists.');
+                $validator->errors()->add(
+                    'name',
+                    'The menu item name already exists.'
+                );
             }
+
             if ($this->priceValidationCheck()) {
-                $validator->errors()->add('discount_price', 'The discount price is greater than the unit price.');
+                $validator->errors()->add(
+                    'discount_price',
+                    'The discount price is greater than the unit price.'
+                );
             }
         });
     }
@@ -64,25 +63,20 @@ class MenuItemRequest extends FormRequest
     private function menuItemNameUniqueCheck()
     {
         $restaurant_id = auth()->user()->restaurant->id ?? 0;
-        $id            = $this->menu_item;
+        $id = $this->menu_item;
 
-        $queryArray['name']          = request('name');
+        $queryArray['name'] = request('name');
         $queryArray['restaurant_id'] = $restaurant_id;
 
-        $menu_items = MenuItem::where($queryArray)->where('id', '!=', $id)->first();
+        $menu_items = MenuItem::where($queryArray)
+            ->where('id', '!=', $id)
+            ->first();
 
-        if (blank($menu_items)) {
-            return false;
-        }
-        return true;
+        return !blank($menu_items);
     }
 
     private function priceValidationCheck()
     {
-        if (request('unit_price') < request('discount_price')) {
-            return true;
-        }
-        return false;
+        return request('unit_price') < request('discount_price');
     }
-
 }
