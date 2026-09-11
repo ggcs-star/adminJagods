@@ -46,7 +46,9 @@
                                         <td class="db-table-body-td">
                                             <img src="{{ $banner->image }}" class="w-20">
                                         </td>
-                                        <td class="db-table-body-td">{{ $banner->restuarant->name }} </td>
+                                        <td class="db-table-body-td">
+                                            {{ $banner->restuarant?->name ?? '-' }}
+                                        </td>
                                         <td class="db-table-body-td">{{ Str::limit($banner->title, 60, '...') }} </td>
                                         <td class="db-table-body-td">
                                             @if ($banner->status == 5)
@@ -69,7 +71,8 @@
                                                 @endif
 
                                                 @if (auth()->user()->can('banner_delete'))
-                                                    <form class="inline-block" action="{{ route('admin.banner.destroy', $banner) }}"
+                                                    <form class="inline-block"
+                                                        action="{{ route('admin.banner.destroy', $banner) }}"
                                                         method="POST">
                                                         @csrf
                                                         @method('DELETE')
