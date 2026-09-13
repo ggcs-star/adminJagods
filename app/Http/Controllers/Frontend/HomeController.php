@@ -9,6 +9,7 @@ use App\Models\Restaurant;
 use App\Enums\RestaurantStatus;
 use App\Enums\Status;
 use App\Http\Controllers\FrontendController;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends FrontendController
 {
@@ -21,12 +22,17 @@ class HomeController extends FrontendController
 
     public function index()
     {
-        $this->data['vouchers']               = $this->getValidVouchers();
-        $this->data['cuisines']               = $this->getActiveCuisines();
-        $this->data['bestSellingRestaurants'] = $this->getBestSellingRestaurants();
-        $this->data['bestSellingCuisines']    = $this->getBestSellingCuisines();
-        $this->data['current_data']           =  now()->format('H:i:s');
-        return view('frontend.home', $this->data);
+        if (Auth::check()) {
+            return redirect()->route('admin.dashboard.index');
+        }
+
+        return redirect()->route('login');
+        // $this->data['vouchers']               = $this->getValidVouchers();
+        // $this->data['cuisines']               = $this->getActiveCuisines();
+        // $this->data['bestSellingRestaurants'] = $this->getBestSellingRestaurants();
+        // $this->data['bestSellingCuisines']    = $this->getBestSellingCuisines();
+        // $this->data['current_data']           =  now()->format('H:i:s');
+        // return view('frontend.home', $this->data);
     }
 
     private function getValidVouchers()
@@ -50,25 +56,25 @@ class HomeController extends FrontendController
 
 
     private function getBestSellingRestaurants()
-{
-    return Restaurant::with('media')
-        ->where('restaurants.status', RestaurantStatus::ACTIVE)
-        ->where('restaurants.current_status', RestaurantStatus::ACTIVE)
-        ->select('restaurants.*')
-        ->selectSub(function ($query) {
-            $query->from('orders')
-                ->selectRaw('COUNT(*)')
-                ->whereColumn('orders.restaurant_id', 'restaurants.id');
-        }, 'orders_count')
-        ->selectSub(function ($query) {
-            $query->from('restaurant_ratings')
-                ->selectRaw('COUNT(*)')
-                ->whereColumn('restaurant_ratings.restaurant_id', 'restaurants.id');
-        }, 'rating_count')
-        ->orderByDesc('orders_count')
-        ->take(28)
-        ->get();
-}
+    {
+        return Restaurant::with('media')
+            ->where('restaurants.status', RestaurantStatus::ACTIVE)
+            ->where('restaurants.current_status', RestaurantStatus::ACTIVE)
+            ->select('restaurants.*')
+            ->selectSub(function ($query) {
+                $query->from('orders')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('orders.restaurant_id', 'restaurants.id');
+            }, 'orders_count')
+            ->selectSub(function ($query) {
+                $query->from('restaurant_ratings')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('restaurant_ratings.restaurant_id', 'restaurants.id');
+            }, 'rating_count')
+            ->orderByDesc('orders_count')
+            ->take(28)
+            ->get();
+    }
 
 
     private function getBestSellingCuisines()

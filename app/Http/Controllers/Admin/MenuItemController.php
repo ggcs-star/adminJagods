@@ -93,9 +93,10 @@ class MenuItemController extends BackendController
         $menuItem->max_cart_quantity = $request->get('max_cart_quantity');
         $menuItem->status = $request->get('status');
         $menuItem->menu_number = $menuNumber;
-        $menuItem->petpooja_restaurantid = 'df';
-        $menuItem->petpooja_itemid = 'df';
-        $menuItem->petpooja_itemname = 'df';
+        $menuItem->petpooja_restaurantid = '';
+        $menuItem->petpooja_itemid = '';
+        $menuItem->petpooja_itemname = '';
+
         $menuItem->petpooja_price = 00.00;
         $menuItem->save();;
 
