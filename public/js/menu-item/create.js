@@ -25,7 +25,7 @@ $(".custom-file-input").on("change", function() {
     $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
 });
 
-if(jQuery().summernote) {
+if (jQuery().summernote) {
     $(".summernote-simple").summernote({
         dialogsInBody: true,
         minHeight: 230,
@@ -38,8 +38,21 @@ if(jQuery().summernote) {
 }
 
 $(document).ready(function() {
-    $('.select2').select2();
+
+    // Normal Select2
+    $('.select2:not(#tags)').select2();
+
+    // Tags Select2
+    $('#tags').select2({
+        tags: true,
+        tokenSeparators: [','],
+        placeholder: 'Enter tags',
+        allowClear: true,
+        width: '100%'
+    });
+
 });
+
 ClassicEditor.create(document.querySelector('#editor'), {
     editorContainer: {
         height: '500px',

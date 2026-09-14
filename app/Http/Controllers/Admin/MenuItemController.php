@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Yajra\Datatables\Datatables;
 use App\Enums\Module;
+
 class MenuItemController extends BackendController
 {
 
@@ -52,21 +53,21 @@ class MenuItemController extends BackendController
      * @return \Illuminate\Http\Response
      */
     public function create()
-{
-    $this->data['categories'] = Category::where(
-        'status',
-        CategoryStatus::ACTIVE
-    )->get();
+    {
+        $this->data['categories'] = Category::where(
+            'status',
+            CategoryStatus::ACTIVE
+        )->get();
 
-    $this->data['restaurants'] = Restaurant::where(
-        'status',
-        Status::ACTIVE
-    )->get();
+        $this->data['restaurants'] = Restaurant::where(
+            'status',
+            Status::ACTIVE
+        )->get();
 
-    $this->data['modules'] = Module::all();
+        $this->data['modules'] = Module::all();
 
-    return view('admin.menu-item.create', $this->data);
-}
+        return view('admin.menu-item.create', $this->data);
+    }
 
     /**
      * @param MenuItemRequest $request
@@ -98,6 +99,11 @@ class MenuItemController extends BackendController
         $menuItem->petpooja_itemname = '';
 
         $menuItem->petpooja_price = 00.00;
+        $menuItem->tags = collect($request->tags ?? [])
+            ->map(fn($tag) => trim($tag))
+            ->filter()
+            ->values()
+            ->toArray();
         $menuItem->save();;
 
         $menuItem->categories()->sync($request->get('categories'));
@@ -157,6 +163,11 @@ class MenuItemController extends BackendController
         $menuItem->restroType = $request->get('restroType') ?? 'veg';
         $menuItem->max_cart_quantity = $request->get('max_cart_quantity');
         $menuItem->status = $request->get('status');
+        $menuItem->tags = collect($request->get('tags', []))
+            ->map(fn($tag) => trim($tag))
+            ->filter()
+            ->values()
+            ->toArray();
         $menuItem->save();
 
         $menuItem->categories()->sync($request->get('categories'));

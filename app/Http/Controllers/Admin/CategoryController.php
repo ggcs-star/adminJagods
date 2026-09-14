@@ -62,6 +62,7 @@ class CategoryController extends BackendController
 
     public function store(CategoryRequest $request)
     {
+        // dd($request->all());
         $category = new Category;
 
         $category->name = $request->name;
@@ -88,8 +89,8 @@ class CategoryController extends BackendController
 
         // Array ko directly assign karo.
         // Model cast JSON me automatically convert karega.
-        $category->display_module_id = $request->display_module_id ?: null;
-
+        $displayModules = collect($request->display_module_id ?? [])->map(fn($id) => (int) $id)->sort()->values()->toArray();
+        $category->display_module_id = $displayModules;
         $category->save();
 
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
@@ -152,8 +153,12 @@ class CategoryController extends BackendController
         $category->module_id = $request->module_id;
         $category->sort_order = $request->sort_order ?? 0;
 
-        // Do NOT json_encode()
-        $category->display_module_id = $request->display_module_id ?: null;
+
+        $category->display_module_id = collect($request->display_module_id ?? [])
+            ->map(fn($id) => (int) $id)
+            ->sort()
+            ->values()
+            ->toArray();
 
         $category->save();
 

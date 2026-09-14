@@ -192,6 +192,49 @@
                                     <small class="db-field-alert">{{ $errors->first('image') }}</small>
                                 @endif
                             </div>
+                            @php
+                                use App\Enums\MenuItemTag;
+
+                                $selectedTags = old(
+                                    'tags',
+                                    is_array($menuItem->tags)
+                                        ? $menuItem->tags
+                                        : (is_string($menuItem->tags)
+                                            ? json_decode($menuItem->tags, true)
+                                            : []),
+                                );
+                            @endphp
+
+                            {{-- Tags --}}
+                            <div class="col-12 sm:col-6 md:col-4 xl:col-3">
+                                <label class="db-field-title" for="tags">
+                                    Tags
+                                </label>
+
+                                <select name="tags[]" id="tags"
+                                    class="db-field-control select2 custom-select2 @error('tags') invalid @enderror"
+                                    multiple="multiple">
+                                    @foreach (MenuItemTag::all() as $tag)
+                                        <option value="{{ $tag }}"
+                                            {{ in_array($tag, (array) $selectedTags) ? 'selected' : '' }}>
+                                            {{ ucwords(str_replace('-', ' ', $tag)) }}
+                                        </option>
+                                    @endforeach
+
+                                    {{-- Custom tags jo database me hain lekin Enum me nahi hain --}}
+                                    @foreach ((array) $selectedTags as $tag)
+                                        @if (!in_array($tag, MenuItemTag::all()))
+                                            <option value="{{ $tag }}" selected>
+                                                {{ $tag }}
+                                            </option>
+                                        @endif
+                                    @endforeach
+                                </select>
+
+                                @error('tags')
+                                    <small class="db-field-alert">{{ $message }}</small>
+                                @enderror
+                            </div>
 
                             <div class="form-col-12">
                                 <label class="db-field-title required"

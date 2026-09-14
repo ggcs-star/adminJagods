@@ -183,6 +183,30 @@
                                     <small class="db-field-alert">{{ $errors->first('image') }}</small>
                                 @endif
                             </div>
+                            @php
+                                use App\Enums\MenuItemTag;
+                            @endphp
+
+                            <div class="form-col-12 sm:form-col-6 md:form-col-4 xl:form-col-3">
+                                <label class="db-field-title" for="tags">
+                                    Tags
+                                </label>
+
+                                <select name="tags[]" id="tags"
+                                    class="db-field-control select2 custom-select2 @error('tags') invalid @enderror"
+                                    multiple="multiple">
+                                    @foreach (MenuItemTag::all() as $tag)
+                                        <option value="{{ $tag }}"
+                                            {{ in_array($tag, (array) old('tags', [])) ? 'selected' : '' }}>
+                                            {{ ucwords(str_replace('-', ' ', $tag)) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @error('tags')
+                                    <small class="db-field-alert">{{ $message }}</small>
+                                @enderror
+                            </div>
 
                             {{-- Description --}}
                             <div class="form-col-12">
