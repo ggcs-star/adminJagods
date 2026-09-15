@@ -1,10 +1,3 @@
-/**
- *
- * You can write your JS code here, DO NOT touch the default style file
- * because it will make it harder for you to update.
- *
- */
-
 "use strict";
 
 function readURL(input) {
@@ -19,13 +12,13 @@ function readURL(input) {
     }
 }
 
-// Add the following code if you want the name of the file appear on select
+// File name
 $(".custom-file-input").on("change", function() {
     var fileName = $(this).val().split("\\").pop();
     $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
 });
 
-if(jQuery().summernote) {
+if (jQuery().summernote) {
     $(".summernote-simple").summernote({
         dialogsInBody: true,
         minHeight: 230,
@@ -37,9 +30,21 @@ if(jQuery().summernote) {
     });
 }
 
-$(document).ready(function() {
-    $('.select2').select2();
+$(document).ready(function () {
+
+    // Other Select2
+    $('.select2:not(#tags)').select2();
+
+    // Tags Select2
+    $('#tags').select2({
+        tags: true,
+        tokenSeparators: [','],
+        placeholder: 'Select or type tags',
+        allowClear: true,
+        width: '100%'
+    });
 });
+
 ClassicEditor.create(document.querySelector('#editor'), {
     editorContainer: {
         height: '500px',
