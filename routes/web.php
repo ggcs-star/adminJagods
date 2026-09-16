@@ -67,11 +67,16 @@ use App\Http\Controllers\Admin\RestaurantController as RestaurantsController;
 use App\Http\Controllers\Admin\CashOnDeliveryOrderBalanceReportController;
 use App\Http\Controllers\Admin\ReservationController as ReservationsController;
 use App\Http\Controllers\Frontend\AppRedirectController;
+use App\Http\Controllers\Auth\LoginController as UserLoginController;
 
 Route::group(['middleware' => ['installed', 'license-activate']], function () {
-    Auth::routes(['verify' => false]);
-});
 
+    Auth::routes(['verify' => false]);
+    Route::post('/login', [UserLoginController::class, 'login'])->middleware('throttle:1,1')->name('login');
+    Route::get('/login/otp', [UserLoginController::class, 'showOtpForm'])->name('login.otp');
+    Route::post('/login/otp', [UserLoginController::class, 'verifyOtp'])->middleware('throttle:5,1')->name('login.otp.verify');
+    Route::post('/login/otp/resend', [UserLoginController::class, 'resendOtp'])->middleware('throttle:1,1')->name('login.otp.resend');
+});
 
 Route::group(['middleware' => ['installed', 'not-verified']], function () {
     Route::get('/license-activate', [PurchaseCodeController::class, 'licenseCodeActivate'])->name('license-activate');
