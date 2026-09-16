@@ -53,17 +53,19 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
+        dd($request->all());
         $this->validateLogin($request);
 
-        if (method_exists($this, 'hasTooManyLoginAttempts') &&
-            $this->hasTooManyLoginAttempts($request)) {
+        if (
+            method_exists($this, 'hasTooManyLoginAttempts') &&
+            $this->hasTooManyLoginAttempts($request)
+        ) {
             $this->fireLockoutEvent($request);
 
             return $this->sendLockoutResponse($request);
         }
 
-        if (Auth::attempt(['email' => $request->get('email'), 'password' => $request->get('password'), 'roles' => UserRole::ADMIN]))
-        {
+        if (Auth::attempt(['email' => $request->get('email'), 'password' => $request->get('password'), 'roles' => UserRole::ADMIN])) {
             return $this->sendLoginResponse($request);
         }
 

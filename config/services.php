@@ -31,4 +31,7 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'admin_verification' => [
+        'email' => env('ADMIN_VERIFY_EMAIL'),
+    ],
 ];
