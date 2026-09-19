@@ -47,6 +47,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\DeviceIdentificationMiddleware::class,
             \App\Http\Middleware\RequireActiveSessionMiddleware::class,
         ],
+        
     ];
 
     /**
@@ -75,5 +76,6 @@ class Kernel extends HttpKernel
         'role_or_permission' => \Spatie\Permission\Middlewares\RoleOrPermissionMiddleware::class,
         'backend_permission' => \App\Http\Middleware\IsHasBackendPermission::class,
         'require.trusted.device' => \App\Http\Middleware\RequireTrustedDevice::class,
+        'coupon.access' => \App\Http\Middleware\CouponAccess::class,
     ];
 }

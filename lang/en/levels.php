@@ -21,6 +21,7 @@ return array(
     'tip'                         =>'Tip Amount',
     'gst'                         =>'GTS',
     'applied_coupon' => 'Applied Coupen',
+    'product_discount' => 'Product Discount',
   'latitude'                          => 'Latitude',
   'longitude'                         => 'Longitude',
   'current_status'                    => 'Current Status',
