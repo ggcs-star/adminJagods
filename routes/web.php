@@ -68,7 +68,7 @@ use App\Http\Controllers\Admin\CashOnDeliveryOrderBalanceReportController;
 use App\Http\Controllers\Admin\ReservationController as ReservationsController;
 use App\Http\Controllers\Frontend\AppRedirectController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
-
+use App\Http\Controllers\Admin\CouponAccessController;
 Route::group(['middleware' => ['installed', 'license-activate']], function () {
 
     Auth::routes(['verify' => false]);
@@ -299,7 +299,15 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'installed', 'licens
     Route::get('live-orders', [OrderController::class, 'liveOrders'])->name('orders.live-orders');
     Route::get('get-live-orders', [OrderController::class, 'getliveOrders'])->name('orders.get-live-Order');
 
+    Route::get('/coupon/access', [CouponAccessController::class, 'show'])
+    ->name('coupon.access.form');
+
+Route::post('/coupon/access', [CouponAccessController::class, 'verify'])
+    ->name('coupon.access.verify');
+
+Route::middleware('coupon.access')->group(function () {
     Route::resource('coupon', CouponController::class);
+});
     Route::get('test-coupon', [CouponController::class, 'testFunction']);
 
     Route::resource('restaurants', RestaurantsController::class);

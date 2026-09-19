@@ -34,4 +34,8 @@ return [
     'admin_verification' => [
         'email' => env('ADMIN_VERIFY_EMAIL'),
     ],
+
+    'coupon_access' => [
+        'code' => env('COUPON_ACCESS_CODE'),
+    ],
 ];

@@ -8,7 +8,10 @@
                 {{ Breadcrumbs::render('menu-items/edit') }}
             </div>
         </div>
-
+        <button type="button" onclick="window.history.back();" class="db-btn text-white" style="background-color: #6c757d;">
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Back</span>
+        </button>
         <div class="col-12">
             <div class="db-card">
                 <div class="db-card-header">
@@ -250,6 +253,11 @@
                                 <button type="submit" class="db-btn text-white bg-primary">
                                     <i class="fa-solid fa-circle-check"></i>
                                     <span>{{ __('levels.save') }}</span>
+                                </button>
+                                <button type="button" onclick="window.history.back();" class="db-btn text-white"
+                                    style="background-color: #6c757d;">
+                                    <i class="fa-solid fa-arrow-left"></i>
+                                    <span>Back</span>
                                 </button>
                             </div>
 
