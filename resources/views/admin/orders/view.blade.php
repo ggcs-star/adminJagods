@@ -3,8 +3,8 @@
 @section('content')
 
     <!--====================================
-                                CONTENT PART START
-                    =====================================-->
+                                    CONTENT PART START
+                        =====================================-->
     <div class="row">
         <div class="col-12">
             <div class="custome-breadcrumb">
@@ -62,9 +62,9 @@
                             <li class="text-xs">{{ __('order.payment_method') }} : <span
                                     class="text-heading">{{ trans('payment_method.' . $order->payment_method) }}</span>
                             </li>
-                            <li class="text-xs">Order Source : <span
+                            {{-- <li class="text-xs">Order Source : <span
                                     class="text-heading">{{ $order->order_source ?? 'N/A' }}</span>
-                            </li>
+                            </li> --}}
                         </ul>
                     </div>
 
@@ -475,6 +475,9 @@
 
                                         <!-- Left Side: Coupon Name & Code -->
                                         <div>
+                                             <p class="text-sm font-semibold text-heading">
+                                                {{ $discount->coupons->coupon_for ?? 'jagods' }}
+                                            </p>
                                             <p class="text-sm font-semibold text-heading">
                                                 {{ $discount->coupons->name ?? 'Coupon' }}
                                             </p>
@@ -581,8 +584,8 @@
         </div>
     </div>
     <!--====================================
-                                CONTENT PART END
-                    =====================================-->
+                                    CONTENT PART END
+                        =====================================-->
 
     <section class="section">
         <div id="invoice-print" class="hidden">

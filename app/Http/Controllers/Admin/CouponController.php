@@ -144,6 +144,12 @@ class CouponController extends BackendController
                 $queryArray['coupon_type'] = $request->coupon_type;
             }
 
+            // 👇 Naya Status Filter Logic Yahan Add Kiya Hai 👇
+            if ($request->filled('status')) {
+                $queryArray['status'] = $request->status;
+            }
+            // 👆 ------------------------------------------ 👆
+
             if (!blank($queryArray)) {
                 $coupons = Coupon::where($queryArray)->descending()->get();
             } else {

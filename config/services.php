@@ -38,4 +38,7 @@ return [
     'coupon_access' => [
         'code' => env('COUPON_ACCESS_CODE'),
     ],
+    'internal_api' => [
+        'token' => env('INTERNAL_API_TOKEN'),
+    ],
 ];

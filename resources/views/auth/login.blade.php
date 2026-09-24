@@ -16,9 +16,9 @@
                             <a class="nav-link active" href="{{ route('login') }}">
                                 {{ __('login') }}
                             </a>
-                            <a class="nav-link" href="{{ route('register') }}">
+                            {{-- <a class="nav-link" href="{{ route('register') }}">
                                 {{ __('register') }}
-                            </a>
+                            </a> --}}
                         </nav>
 
                         <div class="auth-tabs">

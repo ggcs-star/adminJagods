@@ -1,19 +1,6 @@
-/**
- *
- * You can write your JS code here, DO NOT touch the default style file
- * because it will make it harder for you to update.
- *
- */
-
 "use strict";
 
 $(document).ready(function () {
-    // $(".input-daterange").datepicker({
-    //     todayBtn: "linked",
-    //     format: "dd-mm-yyyy",
-    //     autoclose: true,
-    // });
-
     load_data();
 
     function load_data(startDate = "", endDate = "", orderType = "", code = "", status = "") {
@@ -36,6 +23,22 @@ $(document).ready(function () {
                 { data: "created_at", name: "created_at" },
                 { data: "order_type", name: "order_type" },
                 { data: "status", name: "status" },
+                
+                // Payment Status with JS Render Logic
+                { 
+                    data: "payment_status", 
+                    name: "payment_status",
+                    render: function (data, type, row) {
+                        // 5 = PAID, 10 = UNPAID
+                        if (data == 5) {
+                            return '<span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background-color: #d1fae5; color: #065f46;">Paid</span>';
+                        } else if (data == 10) {
+                            return '<span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background-color: #fee2e2; color: #991b1b;">Unpaid</span>';
+                        }
+                        return '<span style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background-color: #f3f4f6; color: #374151;">-</span>';
+                    }
+                }, 
+                
                 { data: "total", name: "total" },
                 { data: "action", name: "action" },
             ],
@@ -44,7 +47,8 @@ $(document).ready(function () {
 
         let hidecolumn = $("#maintable").data("hidecolumn");
         if (!hidecolumn) {
-            table.column(6).visible(false);
+            // Index 6 se 7 kar diya kyuki ek naya column add hua hai
+            table.column(7).visible(false); 
         }
     }
 
@@ -93,7 +97,5 @@ $(document).ready(function () {
             printWindow.close();
             $('.dt-length, .dt-search, .dt-info, .dt-paging').show();
         };
-        
-    })
-
+    });
 });

@@ -185,16 +185,588 @@
                                 @enderror
                             </div>
 
+                            {{-- Images --}}
                             <div class="col-12 sm:col-6 md:col-4 xl:col-3">
-                                <label class="db-field-title" for="customFile">{{ __('levels.image') }}</label>
 
-                                <input type="file" name="image" id="customFile"
-                                    class="db-field-control @error('image') invalid @enderror">
+                                <label class="db-field-title">
+                                    {{ __('levels.image') }}
+                                </label>
 
-                                @if ($errors->has('image'))
-                                    <small class="db-field-alert">{{ $errors->first('image') }}</small>
+                                {{-- Upload Box --}}
+                                <div id="imageUploadBox"
+                                    class="relative border-2 border-dashed border-gray-300 rounded-xl p-5 text-center cursor-pointer hover:border-primary transition bg-gray-50">
+
+                                    <input type="file" name="images[]" id="customFile" multiple
+                                        accept="image/jpeg,image/png,image/jpg,image/webp"
+                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+
+                                    <div class="pointer-events-none">
+
+                                        <div class="flex justify-center mb-3">
+                                            <div
+                                                class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                                <i class="fa-solid fa-cloud-arrow-up text-primary text-xl"></i>
+                                            </div>
+                                        </div>
+
+                                        <p class="text-sm font-medium text-heading">
+                                            Click to upload images
+                                        </p>
+
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            You can select multiple images
+                                        </p>
+
+                                        <p class="text-xs text-gray-400 mt-1">
+                                            JPG, JPEG, PNG, WEBP — Max 4MB each
+                                        </p>
+
+                                    </div>
+                                </div>
+
+
+                                {{-- Image Count --}}
+                                <div id="imageCount" class="mt-3 text-sm font-medium text-heading"></div>
+
+
+                                {{-- Existing + New Images --}}
+                                <div id="imagePreview" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
+
+                                    {{-- Existing Images --}}
+                                    @foreach ($menuItem->getMedia('menu-items') as $media)
+                                        <div class="image-preview-item existing-image relative group rounded-lg overflow-hidden border border-gray-200 bg-white"
+                                            data-media-id="{{ $media->id }}">
+
+                                            <img src="{{ $media->getUrl() }}" alt="{{ $menuItem->name }}"
+                                                class="w-full h-32 object-cover">
+
+                                            {{-- Remove Existing Image Button --}}
+                                            <button type="button"
+                                                class="remove-existing-image absolute top-2 right-2 w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-transform hover:scale-110 z-20 shadow"
+                                                data-media-id="{{ $media->id }}" title="Remove image">
+                                                <i class="fa-solid fa-trash text-xs"></i>
+                                            </button>
+
+                                            {{-- Existing Badge --}}
+                                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 px-2 py-1">
+                                                <p class="text-white text-xs truncate">
+                                                    Existing Image
+                                                </p>
+                                            </div>
+
+                                        </div>
+                                    @endforeach
+
+                                </div>
+
+
+                                {{-- Deleted Existing Image IDs --}}
+                                <div id="deletedImagesContainer"></div>
+
+
+                                {{-- Validation --}}
+                                @if ($errors->has('images'))
+                                    <small class="db-field-alert">
+                                        {{ $errors->first('images') }}
+                                    </small>
                                 @endif
+
+                                @if ($errors->has('images.*'))
+                                    <small class="db-field-alert">
+                                        {{ $errors->first('images.*') }}
+                                    </small>
+                                @endif
+
                             </div>
+
+
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+
+                                    const input =
+                                        document.getElementById('customFile');
+
+                                    const preview =
+                                        document.getElementById('imagePreview');
+
+                                    const imageCount =
+                                        document.getElementById('imageCount');
+
+                                    const uploadBox =
+                                        document.getElementById('imageUploadBox');
+
+                                    const deletedImagesContainer =
+                                        document.getElementById('deletedImagesContainer');
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | Check Required Elements
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    if (
+                                        !input ||
+                                        !preview ||
+                                        !imageCount ||
+                                        !deletedImagesContainer
+                                    ) {
+                                        return;
+                                    }
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | New Selected Files
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    let selectedFiles = [];
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | Update Image Count
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    function updateImageCount() {
+
+                                        const existingImages =
+                                            preview.querySelectorAll(
+                                                '.existing-image'
+                                            ).length;
+
+                                        const newImages =
+                                            selectedFiles.length;
+
+                                        const totalImages =
+                                            existingImages + newImages;
+
+
+                                        imageCount.innerHTML = `
+                                            <i class="fa-solid fa-images mr-1"></i>
+                                            ${totalImages} image(s)
+                                        `;
+                                    }
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | Update File Input
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    function updateInputFiles() {
+
+                                        const dataTransfer =
+                                            new DataTransfer();
+
+
+                                        selectedFiles.forEach(function(file) {
+
+                                            dataTransfer.items.add(file);
+
+                                        });
+
+
+                                        input.files =
+                                            dataTransfer.files;
+                                    }
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | Render New Image Previews
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    function renderNewImages() {
+
+                                        /*
+                                         * Sirf new images remove karo.
+                                         *
+                                         * Existing images ko touch nahi karna.
+                                         */
+                                        preview
+                                            .querySelectorAll('.new-image')
+                                            .forEach(function(element) {
+
+                                                element.remove();
+
+                                            });
+
+
+                                        /*
+                                         * New selected files render karo.
+                                         */
+                                        selectedFiles.forEach(function(file, index) {
+
+                                            /*
+                                             * Image file nahi hai to skip.
+                                             */
+                                            if (!file.type.startsWith('image/')) {
+                                                return;
+                                            }
+
+
+                                            const reader =
+                                                new FileReader();
+
+
+                                            reader.onload = function(event) {
+
+                                                const wrapper =
+                                                    document.createElement('div');
+
+
+                                                wrapper.className =
+                                                    'image-preview-item new-image relative group rounded-lg overflow-hidden border border-gray-200 bg-white';
+
+
+                                                wrapper.innerHTML = `
+                                                    <img
+                                                        src="${event.target.result}"
+                                                        alt="Preview"
+                                                        class="w-full h-32 object-cover"
+                                                    >
+
+                                                    <button
+                                                        type="button"
+                                                        class="remove-new-image absolute top-2 right-2 w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center transition-transform hover:scale-110 z-20 shadow"
+                                                        data-index="${index}"
+                                                        title="Remove image"
+                                                    >
+                                                        <i class="fa-solid fa-trash text-xs"></i>
+                                                    </button>
+
+                                                    <div class="absolute bottom-0 left-0 right-0 bg-black/50 px-2 py-1">
+                                                        <p class="text-white text-xs truncate">
+                                                            ${file.name}
+                                                        </p>
+                                                    </div>
+                                                `;
+
+
+                                                preview.appendChild(wrapper);
+
+
+                                                updateImageCount();
+
+                                            };
+
+
+                                            reader.readAsDataURL(file);
+
+                                        });
+
+                                    }
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | Select New Images
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    input.addEventListener(
+                                        'change',
+                                        function(event) {
+
+                                            const files =
+                                                Array.from(
+                                                    event.target.files
+                                                ).filter(function(file) {
+
+                                                    return file.type.startsWith(
+                                                        'image/'
+                                                    );
+
+                                                });
+
+
+                                            /*
+                                             * Existing selected files + new files
+                                             */
+                                            selectedFiles = [
+                                                ...selectedFiles,
+                                                ...files
+                                            ];
+
+
+                                            /*
+                                             * Input update
+                                             */
+                                            updateInputFiles();
+
+
+                                            /*
+                                             * Preview update
+                                             */
+                                            renderNewImages();
+
+
+                                            /*
+                                             * Count update
+                                             */
+                                            updateImageCount();
+
+                                        }
+                                    );
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | Remove Images
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    preview.addEventListener(
+                                        'click',
+                                        function(event) {
+
+
+                                            /*
+                                             * ----------------------------------------------------------
+                                             * Existing Image Remove
+                                             * ----------------------------------------------------------
+                                             */
+
+                                            const existingButton =
+                                                event.target.closest(
+                                                    '.remove-existing-image'
+                                                );
+
+
+                                            if (existingButton) {
+
+                                                const mediaId =
+                                                    existingButton.dataset.mediaId;
+
+
+                                                /*
+                                                 * Image wrapper find karo
+                                                 */
+                                                const imageWrapper =
+                                                    existingButton.closest(
+                                                        '.existing-image'
+                                                    );
+
+
+                                                /*
+                                                 * UI se image remove karo
+                                                 */
+                                                if (imageWrapper) {
+
+                                                    imageWrapper.remove();
+
+                                                }
+
+
+                                                /*
+                                                 * Laravel ke liye hidden input
+                                                 */
+                                                const hiddenInput =
+                                                    document.createElement(
+                                                        'input'
+                                                    );
+
+
+                                                hiddenInput.type =
+                                                    'hidden';
+
+                                                hiddenInput.name =
+                                                    'deleted_images[]';
+
+                                                hiddenInput.value =
+                                                    mediaId;
+
+
+                                                deletedImagesContainer.appendChild(
+                                                    hiddenInput
+                                                );
+
+
+                                                /*
+                                                 * Count update
+                                                 */
+                                                updateImageCount();
+
+
+                                                return;
+                                            }
+
+
+                                            /*
+                                             * ----------------------------------------------------------
+                                             * New Image Remove
+                                             * ----------------------------------------------------------
+                                             */
+
+                                            const newButton =
+                                                event.target.closest(
+                                                    '.remove-new-image'
+                                                );
+
+
+                                            if (newButton) {
+
+                                                const index =
+                                                    parseInt(
+                                                        newButton.dataset.index,
+                                                        10
+                                                    );
+
+
+                                                /*
+                                                 * selectedFiles se image remove
+                                                 */
+                                                selectedFiles.splice(
+                                                    index,
+                                                    1
+                                                );
+
+
+                                                /*
+                                                 * Input update
+                                                 */
+                                                updateInputFiles();
+
+
+                                                /*
+                                                 * Preview update
+                                                 */
+                                                renderNewImages();
+
+
+                                                /*
+                                                 * Count update
+                                                 */
+                                                updateImageCount();
+
+
+                                                return;
+                                            }
+
+                                        }
+                                    );
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | Drag & Drop
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    if (uploadBox) {
+
+
+                                        /*
+                                         * Drag Over
+                                         */
+                                        uploadBox.addEventListener(
+                                            'dragover',
+                                            function(event) {
+
+                                                event.preventDefault();
+
+
+                                                uploadBox.classList.add(
+                                                    'border-primary',
+                                                    'bg-primary/5'
+                                                );
+
+                                            }
+                                        );
+
+
+                                        /*
+                                         * Drag Leave
+                                         */
+                                        uploadBox.addEventListener(
+                                            'dragleave',
+                                            function() {
+
+                                                uploadBox.classList.remove(
+                                                    'border-primary',
+                                                    'bg-primary/5'
+                                                );
+
+                                            }
+                                        );
+
+
+                                        /*
+                                         * Drop
+                                         */
+                                        uploadBox.addEventListener(
+                                            'drop',
+                                            function(event) {
+
+                                                event.preventDefault();
+
+
+                                                uploadBox.classList.remove(
+                                                    'border-primary',
+                                                    'bg-primary/5'
+                                                );
+
+
+                                                const files =
+                                                    Array.from(
+                                                        event.dataTransfer.files
+                                                    ).filter(function(file) {
+
+                                                        return file.type.startsWith(
+                                                            'image/'
+                                                        );
+
+                                                    });
+
+
+                                                /*
+                                                 * Add dropped files
+                                                 */
+                                                selectedFiles = [
+                                                    ...selectedFiles,
+                                                    ...files
+                                                ];
+
+
+                                                /*
+                                                 * Input update
+                                                 */
+                                                updateInputFiles();
+
+
+                                                /*
+                                                 * Preview update
+                                                 */
+                                                renderNewImages();
+
+
+                                                /*
+                                                 * Count update
+                                                 */
+                                                updateImageCount();
+
+                                            }
+                                        );
+
+                                    }
+
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | Initial Image Count
+                                    |--------------------------------------------------------------------------
+                                    */
+
+                                    updateImageCount();
+
+                                });
+                            </script>
+
                             @php
                                 use App\Enums\MenuItemTag;
 
@@ -219,7 +791,7 @@
                                     multiple="multiple">
                                     @foreach (MenuItemTag::all() as $tag)
                                         <option value="{{ $tag }}"
-                                            {{ in_array($tag, (array) $selectedTags) ? 'selected' : '' }}>
+                                            {{ in_array($tag, (array)$selectedTags) ? 'selected' : '' }}>
                                             {{ ucwords(str_replace('-', ' ', $tag)) }}
                                         </option>
                                     @endforeach
