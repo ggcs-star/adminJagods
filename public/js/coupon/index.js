@@ -8,19 +8,22 @@ $(document).ready(function () {
     |--------------------------------------------------------------------------
     */
 
-    $('.table-filter-btn').on('click', function (e) {
-        
-        e.preventDefault();
- console.log('FILTER BUTTON CLICKED');
-        const filterDiv = $('.table-filter-div');
+$('.table-filter-btn').on('click', function (e) {
+    e.preventDefault();
 
-        if (filterDiv.is(':visible')) {
-            filterDiv.hide();
-        } else {
-            filterDiv.show();
-        }
-    });
+    console.log('1 - BUTTON CLICKED');
 
+    const filterDiv = $('.table-filter-div');
+
+    console.log('2 - FILTER DIV FOUND');
+    console.log(filterDiv);
+
+    console.log('3 - LENGTH:', filterDiv.length);
+
+    filterDiv.show();
+
+    console.log('4 - FILTER SHOWN');
+});
 
     /*
     |--------------------------------------------------------------------------

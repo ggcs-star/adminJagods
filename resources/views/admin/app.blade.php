@@ -17,7 +17,7 @@
         @include('admin.layouts.navigation')
         @include('admin.layouts.profileSidebar')
         @include('admin.layouts.sidebar')
-        @include('admin.layouts.orderNotification')
+        {{-- @include('admin.layouts.orderNotification') --}}
         @yield('content')
     </main>
     @include('admin.layouts.script')

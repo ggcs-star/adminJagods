@@ -33,17 +33,21 @@
             <div class="table-filter-div" style="display: none !important;">
                 <div class="p-5 mb-8 border-b border-gray-200">
                     <div class="row">
-                        <div class="col-12 sm:col-6 xl:col-4">
-                            <label class="db-field-title">{{ __('levels.status') }}</label>
-                            <div class="db-field-down-arrow">
-                                <select class="db-field-control appearance-none" id="status" name="status">
-                                    <option value="">-- All --</option>
-                                    <!-- Assume 5 is Active and 10 or another value is Expired/Inactive -->
-                                    <option value="{{ \App\Enums\Status::ACTIVE }}">Active</option>
-                                    <option value="{{ \App\Enums\Status::INACTIVE ?? 10 }}">Expired / Inactive</option>
-                                </select>
-                            </div>
-                        </div>
+                       <select class="db-field-control appearance-none" id="status" name="status">
+
+    <option value="">
+        -- All --
+    </option>
+
+    <option value="{{ \App\Enums\CouponStatus::ACTIVE }}">
+        Active
+    </option>
+
+    <option value="{{ \App\Enums\CouponStatus::EXPIRED }}">
+        Expired / Inactive
+    </option>
+
+</select>
                         
                         <div class="col-12 sm:col-6 xl:col-4 flex items-end">
                             <div class="flex flex-wrap gap-3 items-center">
