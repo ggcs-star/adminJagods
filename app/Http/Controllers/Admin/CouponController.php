@@ -14,7 +14,7 @@ use Yajra\Datatables\Datatables;
 use App\Http\Requests\CouponRequest;
 use App\Http\Services\CouponService;
 use App\Http\Controllers\BackendController;
-
+use App\Enums\DiscountStatus;
 class CouponController extends BackendController
 {
 
@@ -131,66 +131,199 @@ class CouponController extends BackendController
     private function getCoupon($request)
     {
         if (request()->ajax()) {
-            $queryArray = [];
 
-            if (auth()->user()->myrole != 1 && !blank(auth()->user()->restaurant)) {
-                $queryArray['restaurant_id'] = auth()->user()->restaurant->id;
+            $query = Coupon::query();
+
+            /*
+        |--------------------------------------------------------------------------
+        | Restaurant Filter
+        |--------------------------------------------------------------------------
+        */
+
+            if (
+                auth()->user()->myrole != 1 &&
+                !blank(auth()->user()->restaurant)
+            ) {
+                $query->where(
+                    'restaurant_id',
+                    auth()->user()->restaurant->id
+                );
             }
+
+            /*
+        |--------------------------------------------------------------------------
+        | Discount Type
+        |--------------------------------------------------------------------------
+        */
 
             if ($request->discount_type) {
-                $queryArray['discount_type'] = $request->discount_type;
+                $query->where(
+                    'discount_type',
+                    $request->discount_type
+                );
             }
+
+            /*
+        |--------------------------------------------------------------------------
+        | Coupon Type
+        |--------------------------------------------------------------------------
+        */
+
             if ($request->coupon_type) {
-                $queryArray['coupon_type'] = $request->coupon_type;
+                $query->where(
+                    'coupon_type',
+                    $request->coupon_type
+                );
             }
 
-            // 👇 Naya Status Filter Logic Yahan Add Kiya Hai 👇
+            /*
+        |--------------------------------------------------------------------------
+        | Status Filter
+        |--------------------------------------------------------------------------
+        |
+        | Status DB column nahi hai.
+        |
+        | Status getStatusNameAttribute() ke according calculate hota hai:
+        |
+        | EXPIRED:
+        | 1. Total used >= limit
+        | 2. to_date is past
+        |
+        | ACTIVE:
+        | 1. Total used < limit
+        | 2. to_date is not past
+        |
+        */
+
             if ($request->filled('status')) {
-                $queryArray['status'] = $request->status;
-            }
-            // 👆 ------------------------------------------ 👆
 
-            if (!blank($queryArray)) {
-                $coupons = Coupon::where($queryArray)->descending()->get();
-            } else {
-                $coupons = Coupon::descending()->get();
+                $status = (int) $request->status;
+
+                /*
+            |--------------------------------------------------------------------------
+            | ACTIVE
+            |--------------------------------------------------------------------------
+            */
+
+                if ($status === CouponStatus::ACTIVE) {
+
+                    $query
+                        ->where('to_date', '>=', now())
+                        ->whereRaw(
+                            '(
+                            SELECT COUNT(*)
+                            FROM discounts
+                            WHERE discounts.coupon_id = coupons.id
+                            AND discounts.status = ?
+                        ) < coupons.limit',
+                            [DiscountStatus::ACTIVE]
+                        );
+                }
+
+                /*
+            |--------------------------------------------------------------------------
+            | EXPIRED / INACTIVE
+            |--------------------------------------------------------------------------
+            */ elseif ($status === CouponStatus::EXPIRED) {
+
+                    $query->where(function ($q) {
+
+                        $q->where('to_date', '<', now())
+
+                            ->orWhereRaw(
+                                '(
+                                SELECT COUNT(*)
+                                FROM discounts
+                                WHERE discounts.coupon_id = coupons.id
+                                AND discounts.status = ?
+                            ) >= coupons.limit',
+                                [DiscountStatus::ACTIVE]
+                            );
+                    });
+                }
             }
 
-            $i = 0; 
-           return Datatables::of($coupons)
+            /*
+        |--------------------------------------------------------------------------
+        | Coupons
+        |--------------------------------------------------------------------------
+        */
+
+            $coupons = $query
+                ->descending()
+                ->get();
+
+            $i = 0;
+
+            return Datatables::of($coupons)
+
                 ->addColumn('action', function ($coupon) {
-                    
+
                     return action_button([
-                        'view'   => ['route' => route('admin.coupon.show', $coupon),'permission' => 'coupon_show'],
-                        'edit'   => ['route' => route('admin.coupon.edit', $coupon),'permission' => 'coupon_edit'],
-                        'delete' => ['route' => route('admin.coupon.destroy', $coupon),'permission' => 'coupon_delete'],
+                        'view' => [
+                            'route' => route(
+                                'admin.coupon.show',
+                                $coupon
+                            ),
+                            'permission' => 'coupon_show'
+                        ],
+
+                        'edit' => [
+                            'route' => route(
+                                'admin.coupon.edit',
+                                $coupon
+                            ),
+                            'permission' => 'coupon_edit'
+                        ],
+
+                        'delete' => [
+                            'route' => route(
+                                'admin.coupon.destroy',
+                                $coupon
+                            ),
+                            'permission' => 'coupon_delete'
+                        ],
                     ]);
                 })
+
                 ->editColumn('id', function ($coupon) use (&$i) {
                     return ++$i;
                 })
+
                 ->editColumn('name', function ($coupon) {
                     return $coupon->name;
                 })
+
                 ->editColumn('slug', function ($coupon) {
                     return $coupon->slug;
                 })
+
                 ->editColumn('coupon_type', function ($coupon) {
-                    return trans('coupon_types.' . $coupon->coupon_type);
+                    return trans(
+                        'coupon_types.' . $coupon->coupon_type
+                    );
                 })
+
                 ->editColumn('limit', function ($coupon) {
                     return $coupon->limit;
                 })
+
                 ->editColumn('status', function ($coupon) {
                     return $coupon->statusName;
                 })
-                ->rawColumns(['action'])
+
+                ->rawColumns([
+                    'action',
+                    'status'
+                ])
+
                 ->escapeColumns([])
+
                 ->make(true);
         }
+
         return view('admin.coupon.index');
     }
-
     public function allCoupons()
     {
         $coupons = $this->couponService->allCoupons();
