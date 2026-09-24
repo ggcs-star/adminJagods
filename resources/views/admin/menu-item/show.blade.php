@@ -9,7 +9,7 @@
     <div class="row">
         <div class="col-12">
             <div class="custome-breadcrumb">
-            {{ Breadcrumbs::render('menu-items/view') }}
+                {{ Breadcrumbs::render('menu-items/view') }}
             </div>
         </div>
 
@@ -42,19 +42,43 @@
                         <span class="db-list-item-title">{{ __('levels.description') }}</span>
                         <span class="db-list-item-text">{{ strip_tags($menuItem->description) }}</span>
                     </li>
-                   
+
                 </ul>
             </div>
             <div class="db-tabDiv" id="image">
-                @if(!blank($menuItem->image))
-                    <div class="col-lg-4 sm:col-4">
-                        <div class="db-card p-3">
-                            <img class="d-block w-100 h-232 rounded" src="{{ $menuItem->image }}">
-                        </div>  
+
+                @php
+                    $menuImages = $menuItem->getMedia('menu-items');
+                @endphp
+
+                @if ($menuImages->count())
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+
+                        @foreach ($menuImages as $media)
+                            <div class="db-card p-3">
+
+                                <div class="relative overflow-hidden rounded">
+
+                                    <img class="d-block w-100 h-232 rounded object-cover" src="{{ $media->getUrl() }}"
+                                        alt="{{ $menuItem->name }}">
+
+                                </div>
+
+                            </div>
+                        @endforeach
+
+                    </div>
+                @else
+                    <div class="db-card p-4 text-center">
+                        <p class="text-sm text-gray-500">
+                            {{ __('No images available') }}
+                        </p>
                     </div>
                 @endif
+
             </div>
-    
+
+
         </div>
 
     </div>

@@ -109,8 +109,17 @@ class MenuItemController extends BackendController
         $menuItem->categories()->sync($request->get('categories'));
 
         //Store Image
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $menuItem->addMediaFromRequest('image')->toMediaCollection('menu-items');
+        if ($request->hasFile('images')) {
+
+            foreach ($request->file('images') as $image) {
+
+                if ($image->isValid()) {
+
+                    $menuItem
+                        ->addMedia($image)
+                        ->toMediaCollection('menu-items');
+                }
+            }
         }
 
         return redirect()->back()->withSuccess('The data inserted successfully!');
@@ -172,11 +181,45 @@ class MenuItemController extends BackendController
 
         $menuItem->categories()->sync($request->get('categories'));
 
-        //Update Image
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $menuItem->deleteMedia('menu-items', $menuItem->id);
-            $menuItem->addMediaFromRequest('image')->toMediaCollection('menu-items');
+/*
+|--------------------------------------------------------------------------
+| Delete Existing Images
+|--------------------------------------------------------------------------
+*/
+
+if ($request->filled('deleted_images')) {
+
+    foreach ($request->input('deleted_images', []) as $mediaId) {
+
+        $media = $menuItem->media()
+            ->where('id', $mediaId)
+            ->first();
+
+        if ($media) {
+            $media->delete();
         }
+    }
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Add New Images
+|--------------------------------------------------------------------------
+*/
+
+if ($request->hasFile('images')) {
+
+    foreach ($request->file('images') as $image) {
+
+        if ($image->isValid()) {
+
+            $menuItem
+                ->addMedia($image)
+                ->toMediaCollection('menu-items');
+        }
+    }
+}
 
         return redirect()->back()->withSuccess('The data updated successfully!');
     }

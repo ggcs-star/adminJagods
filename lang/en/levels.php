@@ -66,6 +66,7 @@ return array(
   'go_back'                           => 'Go Back',
   'download'                          => 'Download',
   'payment_status'                    => 'Payment Status',
+  'order_status'                     => 'Order Status',
   'commission'                        => 'Commission',
   'site_name'                         => 'Site Name',
   'site_email'                        => 'Site Email',

@@ -161,7 +161,8 @@
                                 <th class="db-table-head-th">{{ __('levels.name') }}</th>
                                 <th class="db-table-head-th">{{ __('levels.date') }}</th>
                                 <th class="db-table-head-th">{{ __('levels.order_type') }}</th>
-                                <th class="db-table-head-th">{{ __('levels.status') }}</th>
+                                <th class="db-table-head-th">{{ __('levels.order_status') }}</th>
+                                <th class="db-table-head-th">{{ __('levels.payment_status') }}</th>
                                 <th class="db-table-head-th">{{ __('levels.total') }}</th>
                                 <th class="db-table-head-th">{{ __('levels.actions') }}</th>
                             </tr>
