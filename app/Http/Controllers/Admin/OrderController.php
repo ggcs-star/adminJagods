@@ -56,7 +56,7 @@ class OrderController extends BackendController
         $this->data['pending_order']   = $orders->where('status', OrderStatus::PENDING)->count();
         $this->data['process_order']   = $orders->where('status', OrderStatus::PROCESS)->count();
         $this->data['completed_order'] = $orders->where('status', OrderStatus::COMPLETED)->count();
-
+        $this->data['users'] = User::select('id','first_name','last_name','email')->orderBy('first_name')->get();
         return view('admin.orders.index', $this->data);
     }
 
@@ -79,12 +79,6 @@ public function show($id)
             'items',
         ])
         ->findOrFail($id);
-
-    /*
-    |--------------------------------------------------------------------------
-    | Load Coupon Data Without Changing Models
-    |--------------------------------------------------------------------------
-    */
     if ($order->discounts->isNotEmpty()) {
 
         $couponIds = $order->discounts
@@ -106,11 +100,6 @@ public function show($id)
         });
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Load Invoice Without Changing Model Relation
-    |--------------------------------------------------------------------------
-    */
     if (!empty($order->invoice_id)) {
         $order->setRelation(
             'invoice',

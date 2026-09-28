@@ -1,14 +1,10 @@
-/**
- *
- * You can write your JS code here, DO NOT touch the default style file
- * because it will make it harder for you to update.
- *
- */
-
 "use strict";
 
+
 function readURL(input) {
+
     if (input.files && input.files[0]) {
+
         var reader = new FileReader();
 
         reader.onload = function (e) {
@@ -18,17 +14,89 @@ function readURL(input) {
         reader.readAsDataURL(input.files[0]);
     }
 }
-// Add the following code if you want the name of the file appear on select
-$(".custom-file-input").on("change", function() {
-    var fileName = $(this).val().split("\\").pop();
-    $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+
+
+// Target Type Change
+$('#target_type').on('change', function () {
+
+    let targetType = $(this).val();
+
+    let $target = $('#target_id');
+
+    $target.empty();
+
+    $target.append(
+        '<option value="">Select Target</option>'
+    );
+
+
+    if (targetType === 'restaurant') {
+
+        restaurants.forEach(function (restaurant) {
+
+            $target.append(
+                '<option value="' + restaurant.id + '">' +
+                restaurant.name +
+                '</option>'
+            );
+
+        });
+
+    }
+
+
+    else if (targetType === 'category') {
+
+        categories.forEach(function (category) {
+
+            $target.append(
+                '<option value="' + category.id + '">' +
+                category.name +
+                '</option>'
+            );
+
+        });
+
+    }
+
 });
 
-if(jQuery().summernote) {
+
+// Existing target load
+if (oldTargetType) {
+
+    $('#target_type').val(oldTargetType);
+
+    $('#target_type').trigger('change');
+
+    if (oldTargetId) {
+        $('#target_id').val(oldTargetId);
+    }
+}
+
+
+// File name
+$(".custom-file-input").on("change", function() {
+
+    let fileName = $(this)
+        .val()
+        .split("\\")
+        .pop();
+
+    $(this)
+        .siblings(".custom-file-label")
+        .addClass("selected")
+        .html(fileName);
+});
+
+
+if (jQuery().summernote) {
+
     $(".summernote").summernote({
         dialogsInBody: true,
         minHeight: 250,
     });
+
     $(".summernote-simple").summernote({
         dialogsInBody: true,
         minHeight: 150,
