@@ -2,19 +2,22 @@
 
 function variationItemDesign() {
     menu_item_variation_count++;
+    // Naya key banaya taaki DB ID ke sath clash na ho
+    var newVariationKey = 'new_' + menu_item_variation_count;
+    
     var markup = '';
     markup += '<tr class="db-table-body-tr border-none">';
         markup += '<td class="db-table-body-td">';
-            markup += '<input type="text" name="variation['+menu_item_variation_count+'][name]" placeholder="Name" name="name" class="db-field-control form-control-sm !w-auto">';
+            markup += '<input type="text" name="variation['+newVariationKey+'][name]" placeholder="Name" class="db-field-control form-control-sm !w-auto">';
         markup +='</td>';
         markup +='<td class="db-table-body-td">';
-            markup += '<input type="text" step=".01" name="variation['+menu_item_variation_count+'][price]" placeholder="Price" class="db-field-control form-control-sm !w-auto change-productprice">';
+            markup += '<input type="text" step=".01" name="variation['+newVariationKey+'][price]" placeholder="Price" class="db-field-control form-control-sm !w-auto change-productprice">';
         markup += '</td>';
         markup +='<td class="db-table-body-td">';
-        markup +='<input type="text" step=".01" name="variation['+menu_item_variation_count+'][discount_price]" placeholder="Discount Price" class="db-field-control form-control-sm !w-auto change-productdiscountprice">';
+            markup +='<input type="text" step=".01" name="variation['+newVariationKey+'][discount_price]" placeholder="Discount Price" class="db-field-control form-control-sm !w-auto change-productdiscountprice">';
         markup +='</td>';
         markup +='<td class="db-table-body-td">';
-            markup += '<button class="db-table-action delete removeBtn"> '
+            markup += '<button type="button" class="db-table-action delete removeBtn"> ';
                 markup += '<i class="fa-solid fa-trash-can"></i>';
                 markup += '<span class="db-tooltip">delete</span>';
             markup += '</button>';
@@ -25,16 +28,22 @@ function variationItemDesign() {
 
 function optionItemDesign() {
     menu_item_option_count++;
+    // Naya key banaya taaki DB ID ke sath clash na ho
+    var newOptionKey = 'new_' + menu_item_option_count;
+    
     var markup = '';
     markup += '<tr class="db-table-body-tr border-none">';
         markup += '<td class="db-table-body-td">';
-            markup += '<input type="text" name="option['+menu_item_option_count+'][name]" placeholder="Name" class="db-field-control form-control-sm !w-auto">';
-        markup +='</td>';
-        markup +='<td class="db-table-body-td">';
-            markup += '<input type="text" step=".01" name="option['+menu_item_option_count+'][price]" placeholder="Price" class="db-field-control form-control-sm !w-auto change-productprice">';
+            markup += '<input type="text" name="option[' + newOptionKey + '][name]" placeholder="Name" class="db-field-control form-control-sm !w-auto">';
         markup += '</td>';
-        markup +='<td class="db-table-body-td">';
-            markup += '<button class="db-table-action delete removeBtn"> '
+        markup += '<td class="db-table-body-td">';
+            markup += '<input type="text" step=".01" name="option[' + newOptionKey + '][price]" placeholder="Price" class="db-field-control form-control-sm !w-auto change-productprice">';
+        markup += '</td>';
+        markup += '<td class="db-table-body-td text-center">';
+            markup += '<input type="checkbox" name="option[' + newOptionKey + '][is_default]" value="1" style="width: 18px; height: 18px; cursor: pointer;">';
+        markup += '</td>';
+        markup += '<td class="db-table-body-td">';
+            markup += '<button type="button" class="db-table-action delete removeBtn">';
                 markup += '<i class="fa-solid fa-trash-can"></i>';
                 markup += '<span class="db-tooltip">delete</span>';
             markup += '</button>';
@@ -55,19 +64,17 @@ $('#option-add').on('click', function(event) {
 
 $(document).on('click','.removeBtn', function(event) {
     event.preventDefault();
-    $(this).parent().parent().remove()
+    $(this).closest('tr').remove();
 });
 
 $(document).on('keyup', '.change-productprice', function() {
     var productPrice =  toFixedVal($(this).val());
     $(this).val(productPrice);
-
     if(dotAndNumber(productPrice)) {
         if(productPrice.length > 12) {
             productPrice = lenChecker(productPrice, 12);
             $(this).val(productPrice);
         }
-
         if(productPrice != '' && productPrice != null) {
             if(floatChecker(productPrice)) {
                 if(productPrice.length > 12) {
@@ -85,13 +92,11 @@ $(document).on('keyup', '.change-productprice', function() {
 $(document).on('keyup', '.change-productdiscountprice', function() {
     var productDiscountPrice =  toFixedVal($(this).val());
     $(this).val(productDiscountPrice);
-
     if(dotAndNumber(productDiscountPrice)) {
         if(productDiscountPrice.length > 12) {
             productDiscountPrice = lenChecker(productDiscountPrice, 12);
             $(this).val(productDiscountPrice);
         }
-
         if(productDiscountPrice != '' && productDiscountPrice != null) {
             if(floatChecker(productDiscountPrice)) {
                 if(productDiscountPrice.length > 12) {
@@ -144,11 +149,9 @@ function dotAndNumber(data) {
                         retArray.push(false);
                     }
                 }
-
             }
         }
     }
-
     if(jQuery.inArray(false, retArray) ==  -1) {
         return true;
     }
@@ -190,6 +193,5 @@ function lenChecker(data, len) {
     } else {
         retdata = parseFloat(data);
     }
-
     return toFixedVal(retdata);
 }

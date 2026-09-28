@@ -8,6 +8,7 @@ use App\Models\Restaurant;
 use Illuminate\Http\Request;
 use App\Http\Requests\BannerRequest;
 use App\Http\Controllers\BackendController;
+use App\Models\Category;
 
 class BannerController extends BackendController
 {
@@ -21,7 +22,6 @@ class BannerController extends BackendController
         $this->middleware(['permission:banner_create'])->only('create', 'store');
         $this->middleware(['permission:banner_edit'])->only('edit', 'update');
         $this->middleware(['permission:banner_delete'])->only('destroy');
-
     }
 
     /**
@@ -29,7 +29,8 @@ class BannerController extends BackendController
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(){
+    public function index()
+    {
         $queryArray = [];
         if (auth()->user()->myrole != 1 && auth()->user()->restaurant) {
             $queryArray['restaurant_id'] = auth()->user()->restaurant->id;
@@ -51,6 +52,8 @@ class BannerController extends BackendController
      */
     public function create()
     {
+
+        $this->data['categories'] = Category::orderBy('name')->get();
         $this->data['restaurants'] = Restaurant::where(['status' => Status::ACTIVE])->get();
         return view('admin.banner.create', $this->data);
     }
@@ -63,24 +66,29 @@ class BannerController extends BackendController
      */
     public function store(BannerRequest $request)
     {
+        $banner = new Banner;
 
-        $banner                    = new Banner;
-        $banner->restaurant_id     = $request->restaurant_id;
+        $banner->target_type       = $request->target_type;
+        $banner->target_id         = $request->target_id;
         $banner->title             = $request->name;
         $banner->short_description = $request->description;
         $banner->link              = $request->url;
         $banner->status            = $request->status;
+        $banner->show_on_landing   = $request->show_on_landing ?? 0;
         $banner->save();
 
-        //Store Image Media Libraty Spatie
+        // Store Image Media Library Spatie
         if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $banner->addMediaFromRequest('image')->toMediaCollection('banner');
+            $banner
+                ->addMediaFromRequest('image')
+                ->toMediaCollection('banner');
         }
 
         $banner->sort = $banner->id;
         $banner->save();
 
-        return redirect(route('admin.banner.index'))->withSuccess('The data inserted successfully.');
+        return redirect(route('admin.banner.index'))
+            ->withSuccess('The data inserted successfully.');
     }
 
     /**
@@ -93,6 +101,7 @@ class BannerController extends BackendController
     {
         $this->data['banner'] = Banner::findOrFail($id);
         $this->data['restaurants'] = Restaurant::where(['status' => Status::ACTIVE])->get();
+        $this->data['categories'] = Category::orderBy('name')->get();
         return view('admin.banner.edit', $this->data);
     }
 
@@ -104,23 +113,32 @@ class BannerController extends BackendController
      * @return \Illuminate\Http\Response
      */
     public function update(BannerRequest $request, $id)
-    {
+{
+    $banner = Banner::findOrFail($id);
 
-        $banner                    = Banner::findOrFail($id);
-        $banner->restaurant_id     = $request->restaurant_id;
-        $banner->title             = $request->name;
-        $banner->short_description = $request->description;
-        $banner->link              = $request->url;
-        $banner->status            = $request->status;
-        $banner->save();
+    $banner->target_type       = $request->target_type;
+    $banner->target_id         = $request->target_id;
+    $banner->show_on_landing   = $request->show_on_landing ?? 0;
+    $banner->title             = $request->name;
+    $banner->short_description = $request->description;
+    $banner->link              = $request->url;
+    $banner->status            = $request->status;
 
-        if ($request->hasFile('image') && $request->file('image')->isValid()) {
-            $banner->media()->delete($id);
-            $banner->addMediaFromRequest('image')->toMediaCollection('banner');
-        }
+    $banner->save();
 
-        return redirect(route('admin.banner.index'))->withSuccess('The data updated successfully.');
+    // Update image only if new image uploaded
+    if ($request->hasFile('image') && $request->file('image')->isValid()) {
+
+        $banner->clearMediaCollection('banner');
+
+        $banner
+            ->addMediaFromRequest('image')
+            ->toMediaCollection('banner');
     }
+
+    return redirect(route('admin.banner.index'))
+        ->withSuccess('The data updated successfully.');
+}
 
     /**
      * Remove the specified resource from storage.

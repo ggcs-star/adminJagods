@@ -44,6 +44,8 @@ class MenuItemController extends BackendController
      */
     public function index(Request $request)
     {
+        $this->data['restaurants'] = Restaurant::orderBy('name')->get();
+
         return $this->getMenuItem($request);
     }
 
@@ -181,45 +183,32 @@ class MenuItemController extends BackendController
 
         $menuItem->categories()->sync($request->get('categories'));
 
-/*
-|--------------------------------------------------------------------------
-| Delete Existing Images
-|--------------------------------------------------------------------------
-*/
+        if ($request->filled('deleted_images')) {
 
-if ($request->filled('deleted_images')) {
+            foreach ($request->input('deleted_images', []) as $mediaId) {
 
-    foreach ($request->input('deleted_images', []) as $mediaId) {
+                $media = $menuItem->media()
+                    ->where('id', $mediaId)
+                    ->first();
 
-        $media = $menuItem->media()
-            ->where('id', $mediaId)
-            ->first();
-
-        if ($media) {
-            $media->delete();
+                if ($media) {
+                    $media->delete();
+                }
+            }
         }
-    }
-}
 
+        if ($request->hasFile('images')) {
 
-/*
-|--------------------------------------------------------------------------
-| Add New Images
-|--------------------------------------------------------------------------
-*/
+            foreach ($request->file('images') as $image) {
 
-if ($request->hasFile('images')) {
+                if ($image->isValid()) {
 
-    foreach ($request->file('images') as $image) {
-
-        if ($image->isValid()) {
-
-            $menuItem
-                ->addMedia($image)
-                ->toMediaCollection('menu-items');
+                    $menuItem
+                        ->addMedia($image)
+                        ->toMediaCollection('menu-items');
+                }
+            }
         }
-    }
-}
 
         return redirect()->back()->withSuccess('The data updated successfully!');
     }
@@ -239,50 +228,127 @@ if ($request->hasFile('images')) {
     private function getMenuItem($request)
     {
         if (request()->ajax()) {
-            $queryArray = [];
-            if (!empty($request->status) && (int) $request->status) {
-                $queryArray['status'] = $request->status;
-            }
-            if (auth()->user()->myrole != 1 && auth()->user()->restaurant) {
-                $queryArray['restaurant_id'] = auth()->user()->restaurant->id;
+
+            $query = MenuItem::with('categories');
+
+            // Restaurant filter
+            if (auth()->user()->myrole != 1) {
+
+                // Non-admin: only own restaurant
+                if (auth()->user()->restaurant) {
+                    $query->where(
+                        'restaurant_id',
+                        auth()->user()->restaurant->id
+                    );
+                }
+            } elseif (!empty($request->restaurant_id)) {
+
+                // Admin: selected restaurant
+                $query->where(
+                    'restaurant_id',
+                    $request->restaurant_id
+                );
             }
 
-            if (!blank($queryArray)) {
-                $menuItems = MenuItem::with('categories')->where($queryArray)->descending()->get();
-            } else {
-                $menuItems = MenuItem::with('categories')->descending()->get();
+            // Status filter
+            if ($request->status !== null && $request->status !== '') {
+                $query->where(
+                    'status',
+                    (int) $request->status
+                );
             }
+
+            $menuItems = $query
+                ->descending()
+                ->get();
 
             $i = 0;
+
             return Datatables::of($menuItems)
+
                 ->addColumn('action', function ($menuItem) {
+
                     $button_array = [];
-                    $button_array['modify'] = ['route' => route('admin.menu-items.modify', $menuItem), 'permission' => 'menu-items_edit'];
-                    $button_array['view'] = ['route' => route('admin.menu-items.show', $menuItem), 'permission' => 'menu-items_show'];
-                    $button_array['edit'] = ['route' => route('admin.menu-items.edit', $menuItem), 'permission' => 'menu-items_edit'];
-                    $button_array['delete'] = ['route' => route('admin.menu-items.destroy', $menuItem), 'permission' => 'menu-items_delete'];
+
+                    $button_array['modify'] = [
+                        'route' => route(
+                            'admin.menu-items.modify',
+                            $menuItem
+                        ),
+                        'permission' => 'menu-items_edit'
+                    ];
+
+                    $button_array['view'] = [
+                        'route' => route(
+                            'admin.menu-items.show',
+                            $menuItem
+                        ),
+                        'permission' => 'menu-items_show'
+                    ];
+
+                    $button_array['edit'] = [
+                        'route' => route(
+                            'admin.menu-items.edit',
+                            $menuItem
+                        ),
+                        'permission' => 'menu-items_edit'
+                    ];
+
+                    $button_array['delete'] = [
+                        'route' => route(
+                            'admin.menu-items.destroy',
+                            $menuItem
+                        ),
+                        'permission' => 'menu-items_delete'
+                    ];
 
                     return action_button($button_array);
                 })
+
                 ->editColumn('id', function ($menuItem) use (&$i) {
                     return ++$i;
                 })
+
                 ->editColumn('categories', function ($menuItem) {
-                    $categories = implode(', ', $menuItem->categories()->pluck('name')->toArray());
+
+                    $categories = implode(
+                        ', ',
+                        $menuItem->categories()->pluck('name')->toArray()
+                    );
+
                     return Str::limit($categories, 30);
                 })
+
                 ->editColumn('name', function ($menuItem) {
-                    $col = '<p class="p-0 m-0">' . Str::limit($menuItem->name, 20) . '</p>';
-                    $col .= '<small class="text-muted">' . Str::limit($menuItem->description, 20) . '</small>';
+
+                    $col = '<p class="p-0 m-0">'
+                        . Str::limit($menuItem->name, 20)
+                        . '</p>';
+
+                    $col .= '<small class="text-muted">'
+                        . Str::limit($menuItem->description, 20)
+                        . '</small>';
+
                     return $col;
                 })
+
                 ->editColumn('status', function ($menuItem) {
                     return $menuItem->statusName;
                 })
-                ->rawColumns(['name', 'status', 'action'])
+
+                ->rawColumns([
+                    'name',
+                    'status',
+                    'action'
+                ])
+
                 ->make(true);
         }
-        return view('admin.menu-item.index', $this->data);
+
+        return view(
+            'admin.menu-item.index',
+            $this->data
+        );
     }
 
     public function getMedia(Request $request)
@@ -387,7 +453,7 @@ if ($request->hasFile('images')) {
     public function modifyUpdate(Request $request, $id)
     {
         if (blank($request->all())) {
-            return redirect(route('admin.menu-items.modify', $id))->withError("The meun item variation/option required.");
+            return redirect(route('admin.menu-items.modify', $id))->withError("The menu item variation/option required.");
         }
 
         $menuItem = MenuItem::owner()->findOrFail($id);
@@ -396,14 +462,15 @@ if ($request->hasFile('images')) {
 
         if (!blank($variationArray)) {
             $requestArray['variation.*.name'] = ['required', 'string'];
-            $requestArray['variation.*.price'] = ['required', 'numeric', 'gt:0', new IniAmount()];
+            $requestArray['variation.*.price'] = ['required', 'numeric', 'gte:0', new IniAmount()];
             $requestArray['variation.*.discount_price'] = ['nullable', 'numeric', 'gte:0', new IniAmount()];
         }
 
         $requestArray['option.*.name'] = ['nullable', 'string'];
-        $requestArray['option.*.price'] = ['nullable', 'numeric', 'gt:0', new IniAmount()];
+        $requestArray['option.*.price'] = ['nullable', 'numeric', 'gte:0', new IniAmount()];
 
         $validator = Validator::make($request->all(), $requestArray);
+
         $validator->after(function ($validator) use ($request) {
             $requestVariationArray = $request->variation;
             if (!blank($requestVariationArray)) {
@@ -425,9 +492,7 @@ if ($request->hasFile('images')) {
         }
 
         if (!blank($variationArray)) {
-
             $key = array_key_first($variationArray);
-
             $smallPrice = isset($variationArray[$key]) ? $variationArray[$key]['price'] : 0;
             $smallDiscountPrice = isset($variationArray[$key]) ? $variationArray[$key]['discount_price'] : 0;
 
@@ -435,7 +500,6 @@ if ($request->hasFile('images')) {
 
             $setVariationArray = [];
             foreach ($variationArray as $key => $variation) {
-
                 $setVariationArray[$key] = $key;
 
                 if ($variation['price'] < $smallPrice) {
@@ -445,7 +509,6 @@ if ($request->hasFile('images')) {
 
                 if (isset($menuItemVariation[$key])) {
                     $menuItemVariationItem = MenuItemVariation::where(['id' => $key])->first();
-
                     $menuItemVariationItem->menu_item_id = $menuItem->id;
                     $menuItemVariationItem->restaurant_id = $menuItem->restaurant_id;
                     $menuItemVariationItem->name = $variation['name'];
@@ -469,25 +532,49 @@ if ($request->hasFile('images')) {
             MenuItemVariation::where(['menu_item_id' => $menuItem->id, 'restaurant_id' => $menuItem->restaurant_id])->delete();
         }
 
-        MenuItemOption::where('menu_item_id', $id)->delete();
         $mainOptionArray = $request->option;
+
         if (!blank($mainOptionArray)) {
-            $i = 0;
-            $optionArray = [];
-            foreach ($mainOptionArray as $option) {
-                if ($option['name'] == '' || $option['price'] == '') {
+
+            foreach ($request->option ?? [] as $optionId => $option) {
+
+                if (
+                    blank($option['name'] ?? null) ||
+                    ($option['price'] ?? null) === null ||
+                    ($option['price'] ?? null) === ''
+                ) {
                     continue;
                 }
-                $optionArray[$i]['restaurant_id'] = $menuItem->restaurant_id;
-                $optionArray[$i]['menu_item_id'] = $id;
-                $optionArray[$i]['name'] = $option['name'];
-                $optionArray[$i]['price'] = $option['price'];
-                $i++;
+
+                if (is_numeric($optionId) && $optionId > 0) {
+
+                    $menuItemOption = MenuItemOption::where('id', $optionId)
+                        ->where('menu_item_id', $menuItem->id)
+                        ->first();
+
+                    if (!$menuItemOption) {
+                        continue;
+                    }
+
+                    $menuItemOption->name = $option['name'];
+                    $menuItemOption->price = $option['price'];
+                    $menuItemOption->is_default = isset($option['is_default']) ? 1 : 0;
+
+                    $menuItemOption->save();
+                } else {
+
+                    MenuItemOption::create([
+                        'restaurant_id' => $menuItem->restaurant_id,
+                        'menu_item_id'  => $menuItem->id,
+                        'name'          => $option['name'],
+                        'price'         => $option['price'],
+                        'is_default'    => isset($option['is_default']) ? 1 : 0,
+                    ]);
+                }
             }
-            MenuItemOption::insert($optionArray);
         }
 
-        return redirect(route('admin.menu-items.modify', $id))->withSuccess("The Meun item updated successfully.");
+        return redirect(route('admin.menu-items.modify', $id))->withSuccess("The Menu item updated successfully.");
     }
 
     private function priceValidationCheck($array)

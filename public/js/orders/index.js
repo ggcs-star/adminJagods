@@ -3,7 +3,7 @@
 $(document).ready(function () {
     load_data();
 
-    function load_data(startDate = "", endDate = "", orderType = "", code = "", status = "") {
+    function load_data(startDate = "", endDate = "", orderType = "", code = "", status = "", userId = "") {
         var table = $("#maintable").DataTable({
             processing: true,
             serverSide: true,
@@ -15,6 +15,7 @@ $(document).ready(function () {
                     orderType: orderType,
                     code: code,
                     status: status,
+                    user_id: userId, // User filter add kiya gaya
                 },
             },
             columns: [
@@ -47,7 +48,6 @@ $(document).ready(function () {
 
         let hidecolumn = $("#maintable").data("hidecolumn");
         if (!hidecolumn) {
-            // Index 6 se 7 kar diya kyuki ek naya column add hua hai
             table.column(7).visible(false); 
         }
     }
@@ -58,8 +58,10 @@ $(document).ready(function () {
         let orderType = $("#order_type").val();
         let code      = $("#code").val();
         let status    = $("#status").val();
+        let userId    = $("#user_id").val(); // User filter variable
+        
         $("#maintable").DataTable().destroy();
-        load_data(startDate, endDate, orderType, code, status);
+        load_data(startDate, endDate, orderType, code, status, userId);
     });
 
     $("#refresh").on("click", function () {
@@ -69,6 +71,8 @@ $(document).ready(function () {
         $("#order_type").val("");
         $("#code").val("");
         $("#status").val(orderPendingStatus);
+        $("#user_id").val(""); // Clear User dropdown
+        
         $("#maintable").DataTable().destroy();
         load_data();
     });
