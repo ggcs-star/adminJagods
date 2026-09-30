@@ -18,7 +18,7 @@ class MenuItemRequest extends FormRequest
     {
         // dd($this->all());
         return [
-            'module_id' => ['required', 'integer', Rule::in([1, 2]),],
+            'module_id' => ['required', 'integer', Rule::in([1, 2,3]),],
             'restaurant_id'  => ['required', 'numeric'],
             'name'           => ['required', 'string', 'max:255'],
             'categories.*'   => 'nullable',

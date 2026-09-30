@@ -70,7 +70,7 @@ use App\Http\Controllers\Frontend\AppRedirectController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Admin\CouponAccessController;
 use App\Http\Controllers\Api\InternalOrderNotificationController;
-
+use App\Http\Controllers\Admin\CateringPackageController;
 Route::group(['middleware' => ['installed', 'license-activate']], function () {
 
     Auth::routes(['verify' => false]);
@@ -417,4 +417,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'installed', 'licens
         'order-notifications',
         [InternalOrderNotificationController::class, 'latest']
     )->name('order.notifications');
+
+    Route::resource('catering-packages',CateringPackageController::class)->except(['show',]);
 });

@@ -21,5 +21,6 @@
         @yield('content')
     </main>
     @include('admin.layouts.script')
+      @stack('scripts')
 </body>
 </html>
