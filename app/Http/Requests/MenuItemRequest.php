@@ -18,7 +18,7 @@ class MenuItemRequest extends FormRequest
     {
         // dd($this->all());
         return [
-            'module_id' => ['required', 'integer', Rule::in([1, 2,3]),],
+            'module_id' => ['required', 'integer', Rule::in([1, 2, 3]),],
             'restaurant_id'  => ['required', 'numeric'],
             'name'           => ['required', 'string', 'max:255'],
             'categories.*'   => 'nullable',
@@ -28,8 +28,12 @@ class MenuItemRequest extends FormRequest
             'description'    => 'nullable|string|max:1000',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,webp|max:4096',
+            'cover_images' => 'nullable|array',
+            'cover_images.*' => 'image|mimes:jpeg,png,jpg,webp|max:4096',
             'deleted_images' => 'nullable|array',
             'deleted_images.*' => 'integer',
+            'deleted_cover_images' => 'nullable|array',
+            'deleted_cover_images.*' => 'integer',
             'max_cart_quantity' => ['required', 'integer', 'min:1'],
         ];
     }

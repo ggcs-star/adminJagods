@@ -8,59 +8,102 @@ use App\Models\CateringPackage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Enums\CategoryStatus;
+use App\Enums\Module;
+use App\Models\Category;
 
 class CateringPackageController extends Controller
 {
     public function index(Request $request)
     {
-        $query = CateringPackage::query()
-            ->withCount('sections');
+        $query = CateringPackage::query()->withCount('sections');
 
         if ($request->filled('search')) {
             $search = trim($request->search);
-
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                     ->orWhere('slug', 'like', "%{$search}%");
             });
         }
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        if ($request->filled('status') && in_array((string) $request->status, ['0', '1'], true)) {
+            $query->where('status', (int) $request->status);
         }
 
-        $packages = $query
-            ->orderBy('sort_order', 'asc')
+        $packages = $query->orderBy('sort_order', 'asc')
             ->orderBy('id', 'desc')
             ->paginate(20)
             ->withQueryString();
 
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('admin.catering-packages.partials.results', compact('packages'))->render(),
+            ]);
+        }
+
         return view('admin.catering-packages.index', compact('packages'));
     }
 
-    /**
-     * Show create form.
-     */
+    public function show($id)
+    {
+        $package = CateringPackage::query()
+            ->with([
+                'category',
+                'sections' => function ($query) {
+                    $query->orderBy('sort_order', 'asc');
+                },
+                'sections.items' => function ($query) {
+                    $query->orderBy('sort_order', 'asc');
+                },
+                'sections.items.menuItem',
+            ])
+            ->findOrFail($id);
+
+        $coverImage = $package->getCoverImage();
+
+        $galleryImages = $package->getMedia('catering_package_images')
+            ->reject(function ($media) {
+                return (bool) $media->getCustomProperty('is_cover', false);
+            })
+            ->values();
+
+        return view(
+            'admin.catering-packages.show',
+            compact(
+                'package',
+                'coverImage',
+                'galleryImages'
+            )
+        );
+    }
     public function create()
     {
         $menuItems = MenuItem::query()
-            ->where('status', 5) // Updated to match active status 5
+            ->where('status', 5)
+            ->where('module_id', Module::JAGDAI_CATERING)
             ->orderBy('name', 'asc')
             ->get();
 
-        return view('admin.catering-packages.create', compact('menuItems'));
+        $categories = Category::query()
+            ->where('module_id', Module::JAGDAI_CATERING)
+            ->where('status', CategoryStatus::ACTIVE)
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return view(
+            'admin.catering-packages.create',
+            compact('menuItems', 'categories')
+        );
     }
 
-    /**
-     * Store catering package.
-     */
     public function store(Request $request)
     {
         $validated = $this->validatePackage($request);
 
         DB::transaction(function () use ($request, $validated) {
             $package = CateringPackage::create([
-                'module_id' => $validated['module_id'] ?? null,
+                'module_id' => Module::JAGDAI_CATERING,
                 'name' => $validated['name'],
                 'slug' => $validated['slug'],
                 'description' => $validated['description'] ?? null,
@@ -69,19 +112,25 @@ class CateringPackageController extends Controller
                 'min_guests' => $validated['min_guests'],
                 'max_guests' => $validated['max_guests'] ?? null,
                 'lead_time_hours' => $validated['lead_time_hours'],
-                'sort_order' => $validated['sort_order'] ?? 0, // Safe fallback
+                'sort_order' => $validated['sort_order'] ?? 0,
                 'status' => $validated['status'],
+                'category_id' => $validated['category_id'],
             ]);
+
+            if ($request->hasFile('cover_image')) {
+                $package->addMedia($request->file('cover_image'))
+                    ->withCustomProperties(['is_cover' => true])
+                    ->toMediaCollection('catering_package_images');
+            }
 
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $image) {
-                    $package
-                        ->addMedia($image)
+                    $package->addMedia($image)
+                        ->withCustomProperties(['is_cover' => false])
                         ->toMediaCollection('catering_package_images');
                 }
             }
 
-            // Updated to pass $request object for section image handling
             $this->syncSections($package, $request);
         });
 
@@ -94,31 +143,47 @@ class CateringPackageController extends Controller
     {
         $package = CateringPackage::with([
             'sections.items.menuItem',
+            'category',
         ])->findOrFail($id);
-
+        // dd( $package);
         $menuItems = MenuItem::query()
             ->where('status', 5)
+            ->where('module_id', Module::JAGDAI_CATERING)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        $categories = Category::query()
+            ->where(
+                'module_id',
+                Module::JAGDAI_CATERING
+            )
+            ->where(
+                'status',
+                CategoryStatus::ACTIVE
+            )
+            ->orderBy('sort_order', 'asc')
             ->orderBy('name', 'asc')
             ->get();
 
         return view(
             'admin.catering-packages.edit',
-            compact('package', 'menuItems')
+            compact(
+                'package',
+                'menuItems',
+                'categories'
+            )
         );
     }
 
-    /**
-     * Update catering package.
-     */
     public function update(Request $request, $id)
     {
         $package = CateringPackage::findOrFail($id);
-
         $validated = $this->validatePackage($request, $package->id);
 
         DB::transaction(function () use ($request, $validated, $package) {
             $package->update([
-                'module_id' => $validated['module_id'] ?? null,
+                'module_id' => Module::JAGDAI_CATERING,
+                'category_id' => $validated['category_id'],
                 'name' => $validated['name'],
                 'slug' => $validated['slug'],
                 'description' => $validated['description'] ?? null,
@@ -127,11 +192,37 @@ class CateringPackageController extends Controller
                 'min_guests' => $validated['min_guests'],
                 'max_guests' => $validated['max_guests'] ?? null,
                 'lead_time_hours' => $validated['lead_time_hours'],
-                'sort_order' => $validated['sort_order'] ?? 0, // Safe fallback
+                'sort_order' => $validated['sort_order'] ?? 0,
                 'status' => $validated['status'],
             ]);
 
-            // Updated to pass $request object for section image handling
+            if ($request->has('remove_media')) {
+                foreach ($request->remove_media as $mediaId) {
+                    $media = $package->media()->find($mediaId);
+                    if ($media) {
+                        $media->delete();
+                    }
+                }
+            }
+
+            if ($request->hasFile('cover_image')) {
+                $package->getMedia('catering_package_images')
+                    ->where('custom_properties.is_cover', true)
+                    ->each(fn($media) => $media->delete());
+
+                $package->addMedia($request->file('cover_image'))
+                    ->withCustomProperties(['is_cover' => true])
+                    ->toMediaCollection('catering_package_images');
+            }
+
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $package->addMedia($image)
+                        ->withCustomProperties(['is_cover' => false])
+                        ->toMediaCollection('catering_package_images');
+                }
+            }
+
             $this->syncSections($package, $request);
         });
 
@@ -140,9 +231,6 @@ class CateringPackageController extends Controller
             ->withSuccess('Catering package updated successfully.');
     }
 
-    /**
-     * Delete catering package.
-     */
     public function destroy($id)
     {
         $package = CateringPackage::findOrFail($id);
@@ -156,15 +244,17 @@ class CateringPackageController extends Controller
             ->withSuccess('Catering package deleted successfully.');
     }
 
-    /**
-     * Validate package.
-     */
     private function validatePackage(Request $request, ?int $id = null): array
     {
         return $request->validate([
             'module_id' => [
                 'nullable',
                 'integer',
+            ],
+            'category_id' => [
+                'required',
+                'integer',
+                'exists:categories,id',
             ],
             'name' => [
                 'required',
@@ -184,7 +274,11 @@ class CateringPackageController extends Controller
             'images.*' => [
                 'image',
                 'mimes:jpg,jpeg,png,webp',
-                'max:5120',
+            ],
+            'cover_image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
             ],
             'description' => [
                 'nullable',
@@ -236,7 +330,6 @@ class CateringPackageController extends Controller
                 'nullable',
                 'string',
             ],
-            // New Validation fields for Section Image & Selection Type
             'sections.*.image' => [
                 'nullable',
                 'image',
@@ -281,7 +374,6 @@ class CateringPackageController extends Controller
                 'numeric',
                 'min:0',
             ],
-            // New validation for is_default
             'sections.*.items.*.is_default' => [
                 'nullable',
                 'boolean',
@@ -298,9 +390,6 @@ class CateringPackageController extends Controller
         ]);
     }
 
-    /**
-     * Sync package sections and their items.
-     */
     private function syncSections(CateringPackage $package, Request $request): void
     {
         $sections = $request->input('sections', []);
@@ -314,7 +403,7 @@ class CateringPackageController extends Controller
 
         foreach ($sections as $key => $sectionData) {
             $sectionId = $sectionData['id'] ?? null;
-            
+
             $sectionDataToSave = [
                 'name' => $sectionData['name'],
                 'description' => $sectionData['description'] ?? null,
@@ -325,9 +414,6 @@ class CateringPackageController extends Controller
                 'status' => $sectionData['status'] ?? 1,
             ];
 
-            /*
-             * Update existing section
-             */
             if ($sectionId && in_array($sectionId, $existingSectionIds)) {
                 $section = $package
                     ->sections()
@@ -335,30 +421,20 @@ class CateringPackageController extends Controller
                     ->first();
 
                 $section->update($sectionDataToSave);
-            }
-            /*
-             * Create new section
-             */ 
-            else {
+            } else {
                 $section = $package->sections()->create($sectionDataToSave);
             }
 
             $receivedSectionIds[] = $section->id;
 
-            /*
-             * Section Image Upload Logic
-             */
             if ($request->hasFile("sections.{$key}.image")) {
                 // Pehle wali image hata denge taaki duplication na ho
                 $section->clearMediaCollection('catering_section_images');
-                
+
                 $section->addMedia($request->file("sections.{$key}.image"))
-                        ->toMediaCollection('catering_section_images');
+                    ->toMediaCollection('catering_section_images');
             }
 
-            /*
-             * Validate min/max relationships
-             */
             if ($section->min_selections > $section->max_selections) {
                 throw ValidationException::withMessages([
                     'sections' => [
@@ -367,15 +443,9 @@ class CateringPackageController extends Controller
                 ]);
             }
 
-            /*
-             * Get selected items
-             */
             $items = $sectionData['items'] ?? [];
             $itemCount = count($items);
 
-            /*
-             * Validate minimum selections against item count
-             */
             if ($section->min_selections > $itemCount) {
                 throw ValidationException::withMessages([
                     'sections' => [
@@ -384,9 +454,6 @@ class CateringPackageController extends Controller
                 ]);
             }
 
-            /*
-             * Validate maximum selections against item count
-             */
             if ($section->max_selections > $itemCount) {
                 throw ValidationException::withMessages([
                     'sections' => [
@@ -395,9 +462,6 @@ class CateringPackageController extends Controller
                 ]);
             }
 
-            /*
-             * Prevent duplicate menu items
-             */
             $menuItemIds = collect($items)
                 ->pluck('menu_item_id')
                 ->filter()
@@ -411,14 +475,8 @@ class CateringPackageController extends Controller
                 ]);
             }
 
-            /*
-             * Delete old items
-             */
             $section->items()->delete();
 
-            /*
-             * Create package items
-             */
             $itemCounter = 1;
             foreach ($items as $index => $itemData) {
                 $section->items()->create([
@@ -431,9 +489,6 @@ class CateringPackageController extends Controller
             }
         }
 
-        /*
-         * Delete removed sections
-         */
         $sectionsToDelete = array_diff(
             $existingSectionIds,
             $receivedSectionIds

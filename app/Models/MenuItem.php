@@ -99,6 +99,24 @@ class MenuItem extends BaseModel implements HasMedia
         return asset('frontend/images/default/menuitem.png');
     }
 
+    public function getCoverImagesAttribute()
+    {
+        return $this->getMedia('menu-items')
+            ->filter(function (Media $media) {
+                return (bool) $media->getCustomProperty('is_cover', false);
+            })
+            ->values();
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('menu-items')
+            ->useDisk('public');
+
+        $this->addMediaCollection('menu-item-covers')
+            ->useDisk('public');
+    }
+
     public function registerMediaConversions(Media $media = null): void
     {
         $this->addMediaConversion('image')->performOnCollections('menu-items')->keepOriginalImageFormat();
@@ -270,7 +288,7 @@ class MenuItem extends BaseModel implements HasMedia
                 );
         });
     }
-      public function cateringPackageItems()
+    public function cateringPackageItems()
     {
         return $this->hasMany(
             CateringPackageItem::class,

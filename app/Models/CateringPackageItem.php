@@ -19,11 +19,10 @@ class CateringPackageItem extends BaseModel
         'extra_price' => 'decimal:2',
         'sort_order' => 'integer',
         'status' => 'integer',
+        'is_default' => 'boolean',
     ];
 
-    /**
-     * Parent section.
-     */
+  
     public function section(): BelongsTo
     {
         return $this->belongsTo(
@@ -32,9 +31,6 @@ class CateringPackageItem extends BaseModel
         );
     }
 
-    /**
-     * Existing menu item.
-     */
     public function menuItem(): BelongsTo
     {
         return $this->belongsTo(

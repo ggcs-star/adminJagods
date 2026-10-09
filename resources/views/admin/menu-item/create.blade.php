@@ -5,7 +5,6 @@
 @endpush
 
 @section('content')
-
     <div class="row">
         <div class="col-12">
             <div class="custome-breadcrumb">
@@ -174,7 +173,61 @@
                                 @enderror
                             </div>
 
-                            {{-- Multiple Images --}}
+                            {{-- Multiple Cover Images --}}
+                            <div class="form-col-12 sm:form-col-6 md:form-col-4 xl:form-col-3">
+
+                                <label class="db-field-title" for="coverImageInput">
+                                    Cover Images
+                                </label>
+
+                                <div id="coverImageUploadBox"
+                                    class="relative border-2 border-dashed border-gray-300 rounded-xl p-5 text-center cursor-pointer hover:border-primary transition bg-gray-50">
+
+                                    <input type="file" name="cover_images[]" id="coverImageInput" multiple
+                                        accept="image/jpeg,image/png,image/jpg,image/webp"
+                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+
+                                    <div id="coverUploadPlaceholder" class="pointer-events-none">
+                                        <div class="flex justify-center mb-3">
+                                            <div
+                                                class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                                <i class="fa-solid fa-image text-primary text-xl"></i>
+                                            </div>
+                                        </div>
+                                        <p class="text-sm font-medium text-heading">
+                                            Click to upload cover images
+                                        </p>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            You can select multiple cover images
+                                        </p>
+                                        <p class="text-xs text-gray-400 mt-1">
+                                            JPG, JPEG, PNG, WEBP — Max 4MB each
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {{-- Cover Image Count --}}
+                                <div id="coverImageCount" class="hidden mt-3 text-sm font-medium text-heading">
+                                </div>
+
+                                {{-- Cover Image Preview --}}
+                                <div id="coverImagePreview" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+                                </div>
+
+                                @if ($errors->has('cover_images'))
+                                    <small class="db-field-alert">
+                                        {{ $errors->first('cover_images') }}
+                                    </small>
+                                @endif
+
+                                @if ($errors->has('cover_images.*'))
+                                    <small class="db-field-alert">
+                                        {{ $errors->first('cover_images.*') }}
+                                    </small>
+                                @endif
+                            </div>
+
+                            {{-- Multiple Normal Images --}}
                             <div class="form-col-12 sm:form-col-6 md:form-col-4 xl:form-col-3">
                                 <label class="db-field-title" for="customFile">
                                     {{ __('levels.image') }}
@@ -193,15 +246,12 @@
                                                 <i class="fa-solid fa-cloud-arrow-up text-primary text-xl"></i>
                                             </div>
                                         </div>
-
                                         <p class="text-sm font-medium text-heading">
                                             Click to upload images
                                         </p>
-
                                         <p class="text-xs text-gray-500 mt-1">
                                             You can select multiple images
                                         </p>
-
                                         <p class="text-xs text-gray-400 mt-1">
                                             JPG, JPEG, PNG, WEBP — Max 4MB each
                                         </p>
@@ -226,203 +276,6 @@
                                     </small>
                                 @endif
                             </div>
-
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function() {
-
-                                    const input = document.getElementById('customFile');
-                                    const preview = document.getElementById('imagePreview');
-                                    const imageCount = document.getElementById('imageCount');
-                                    const uploadBox = document.getElementById('imageUploadBox');
-
-                                    if (!input) {
-                                        return;
-                                    }
-
-                                    let selectedFiles = [];
-
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | File Input Change
-                                    |--------------------------------------------------------------------------
-                                    */
-
-                                    input.addEventListener('change', function(event) {
-
-                                        const files = Array.from(event.target.files);
-
-                                        selectedFiles = [
-                                            ...selectedFiles,
-                                            ...files
-                                        ];
-
-                                        renderPreviews();
-
-                                        updateInputFiles();
-                                    });
-
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | Render Preview
-                                    |--------------------------------------------------------------------------
-                                    */
-
-                                    function renderPreviews() {
-
-                                        preview.innerHTML = '';
-
-                                        if (selectedFiles.length === 0) {
-
-                                            imageCount.classList.add('hidden');
-
-                                            return;
-                                        }
-
-                                        imageCount.classList.remove('hidden');
-
-                                        imageCount.innerHTML = `
-            <i class="fa-solid fa-images mr-1"></i>
-            ${selectedFiles.length} image(s) selected
-        `;
-
-                                        selectedFiles.forEach(function(file, index) {
-
-                                            if (!file.type.startsWith('image/')) {
-                                                return;
-                                            }
-
-                                            const reader = new FileReader();
-
-                                            reader.onload = function(event) {
-
-                                                const wrapper = document.createElement('div');
-
-                                                wrapper.className =
-                                                    'relative group rounded-lg overflow-hidden border border-gray-200 bg-white';
-
-                                                wrapper.innerHTML = `
-                    <img
-                        src="${event.target.result}"
-                        alt="Preview"
-                        class="w-full h-32 object-cover"
-                    >
-
-                    <button
-                        type="button"
-                        data-index="${index}"
-                        class="remove-image absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-20"
-                        title="Remove image"
-                    >
-                        <i class="fa-solid fa-xmark text-xs"></i>
-                    </button>
-
-                    <div class="absolute bottom-0 left-0 right-0 bg-black/50 px-2 py-1">
-                        <p class="text-white text-xs truncate">
-                            ${file.name}
-                        </p>
-                    </div>
-                `;
-
-                                                preview.appendChild(wrapper);
-                                            };
-
-                                            reader.readAsDataURL(file);
-                                        });
-                                    }
-
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | Remove Image
-                                    |--------------------------------------------------------------------------
-                                    */
-
-                                    preview.addEventListener('click', function(event) {
-
-                                        const button =
-                                            event.target.closest('.remove-image');
-
-                                        if (!button) {
-                                            return;
-                                        }
-
-                                        const index =
-                                            parseInt(button.dataset.index, 10);
-
-                                        selectedFiles.splice(index, 1);
-
-                                        updateInputFiles();
-
-                                        renderPreviews();
-                                    });
-
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | Update Input Files
-                                    |--------------------------------------------------------------------------
-                                    */
-
-                                    function updateInputFiles() {
-
-                                        const dataTransfer = new DataTransfer();
-
-                                        selectedFiles.forEach(function(file) {
-                                            dataTransfer.items.add(file);
-                                        });
-
-                                        input.files = dataTransfer.files;
-                                    }
-
-                                    /*
-                                    |--------------------------------------------------------------------------
-                                    | Drag & Drop
-                                    |--------------------------------------------------------------------------
-                                    */
-
-                                    uploadBox.addEventListener('dragover', function(event) {
-
-                                        event.preventDefault();
-
-                                        uploadBox.classList.add(
-                                            'border-primary',
-                                            'bg-primary/5'
-                                        );
-                                    });
-
-                                    uploadBox.addEventListener('dragleave', function() {
-
-                                        uploadBox.classList.remove(
-                                            'border-primary',
-                                            'bg-primary/5'
-                                        );
-                                    });
-
-                                    uploadBox.addEventListener('drop', function(event) {
-
-                                        event.preventDefault();
-
-                                        uploadBox.classList.remove(
-                                            'border-primary',
-                                            'bg-primary/5'
-                                        );
-
-                                        const files =
-                                            Array.from(event.dataTransfer.files)
-                                            .filter(function(file) {
-                                                return file.type.startsWith('image/');
-                                            });
-
-                                        selectedFiles = [
-                                            ...selectedFiles,
-                                            ...files
-                                        ];
-
-                                        updateInputFiles();
-
-                                        renderPreviews();
-                                    });
-
-                                });
-                            </script>
 
                             @php
                                 use App\Enums\MenuItemTag;
@@ -477,6 +330,107 @@
 @endsection
 
 @push('js')
+    {{-- Inline JS Normal Images k liye --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('customFile');
+            const preview = document.getElementById('imagePreview');
+            const imageCount = document.getElementById('imageCount');
+            const uploadBox = document.getElementById('imageUploadBox');
+
+            if (!input) {
+                return;
+            }
+
+            let selectedFiles = [];
+
+            input.addEventListener('change', function(event) {
+                const files = Array.from(event.target.files);
+                selectedFiles = [...selectedFiles, ...files];
+                renderPreviews();
+                updateInputFiles();
+            });
+
+            function renderPreviews() {
+                preview.innerHTML = '';
+
+                if (selectedFiles.length === 0) {
+                    imageCount.classList.add('hidden');
+                    return;
+                }
+
+                imageCount.classList.remove('hidden');
+                imageCount.innerHTML = `
+                    <i class="fa-solid fa-images mr-1"></i>
+                    ${selectedFiles.length} image(s) selected
+                `;
+
+                selectedFiles.forEach(function(file, index) {
+                    if (!file.type.startsWith('image/')) {
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'relative group rounded-lg overflow-hidden border border-gray-200 bg-white';
+                        wrapper.innerHTML = `
+                            <img src="${event.target.result}" alt="Preview" class="w-full h-32 object-cover">
+                            <button type="button" data-index="${index}" class="remove-image absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-20" title="Remove image">
+                                <i class="fa-solid fa-xmark text-xs"></i>
+                            </button>
+                            <div class="absolute bottom-0 left-0 right-0 bg-black/50 px-2 py-1">
+                                <p class="text-white text-xs truncate">${file.name}</p>
+                            </div>
+                        `;
+                        preview.appendChild(wrapper);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            preview.addEventListener('click', function(event) {
+                const button = event.target.closest('.remove-image');
+                if (!button) {
+                    return;
+                }
+                const index = parseInt(button.dataset.index, 10);
+                selectedFiles.splice(index, 1);
+                updateInputFiles();
+                renderPreviews();
+            });
+
+            function updateInputFiles() {
+                const dataTransfer = new DataTransfer();
+                selectedFiles.forEach(function(file) {
+                    dataTransfer.items.add(file);
+                });
+                input.files = dataTransfer.files;
+            }
+
+            uploadBox.addEventListener('dragover', function(event) {
+                event.preventDefault();
+                uploadBox.classList.add('border-primary', 'bg-primary/5');
+            });
+
+            uploadBox.addEventListener('dragleave', function() {
+                uploadBox.classList.remove('border-primary', 'bg-primary/5');
+            });
+
+            uploadBox.addEventListener('drop', function(event) {
+                event.preventDefault();
+                uploadBox.classList.remove('border-primary', 'bg-primary/5');
+                const files = Array.from(event.dataTransfer.files).filter(function(file) {
+                    return file.type.startsWith('image/');
+                });
+                selectedFiles = [...selectedFiles, ...files];
+                updateInputFiles();
+                renderPreviews();
+            });
+        });
+    </script>
+
+    {{-- Exernal Files --}}
     <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
     <script src="{{ asset('backend/lib/select2/dist/js/select2.full.min.js') }}"></script>
     <script src="{{ asset('js/menu-item/create.js') }}"></script>

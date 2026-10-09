@@ -16,72 +16,55 @@
                         <div class="auth-header text-center">
 
                             <h3 class="text-white">
-                                {{ __('OTP Verification') }}
+                                {{ __('Login Verification') }}
                             </h3>
 
                             <p class="text-white-50">
-                                {{ __('Enter the verification code sent to your registered email') }}
+                                {{ __('Choose how you want to verify your login') }}
                             </p>
 
                         </div>
 
 
-                        {{-- SUCCESS MESSAGE --}}
-                        @if (session('success'))
-                            <div class="alert alert-success">
-                                {{ session('success') }}
+                        {{-- USER INFO --}}
+                        @php
+                            $email = session('pending_login_email');
+                        @endphp
+
+                        @if ($email)
+                            <div class="text-center text-white mb-4">
+                                <small class="text-white-50">
+                                    {{ __('Login email') }}
+                                </small>
+
+                                <div class="fw-semibold mt-1">
+                                    {{ $email }}
+                                </div>
                             </div>
                         @endif
 
 
-                        {{-- ERROR MESSAGE --}}
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                {{ $errors->first() }}
-                            </div>
-                        @endif
-
-
-                        {{-- OTP INFO --}}
-                        <div class="text-center text-white mb-4">
-
-                            <p class="mb-1">
-                                {{ __('Verification OTP has been sent to your registered email.') }}
-                            </p>
-
-                            <small class="text-white-50">
-                                {{ __('The OTP will expire in 5 minutes.') }}
-                            </small>
-
-                        </div>
-
-
-                        {{-- OTP FORM --}}
-                        <form method="POST" action="{{ route('login.otp.verify') }}">
+                        {{-- CODE LOGIN --}}
+                        <form method="POST" action="{{ route('login.code') }}">
                             @csrf
 
-                            <div class="form-group mb-4">
+                            <div class="form-group mb-3">
 
-                                <label for="otp" class="form-label text-white">
-                                    {{ __('Enter OTP') }}
+                                <label for="code" class="form-label text-white">
+                                    {{ __('Login Code') }}
                                 </label>
 
                                 <input
-                                    type="text"
-                                    name="otp"
-                                    id="otp"
-                                    value="{{ old('otp') }}"
-                                    maxlength="6"
-                                    inputmode="numeric"
-                                    pattern="[0-9]{6}"
-                                    autocomplete="one-time-code"
-                                    class="form-control otp-input @error('otp') is-invalid @enderror"
-                                    placeholder="Enter 6 digit OTP"
+                                    type="password"
+                                    name="code"
+                                    id="code"
+                                    class="form-control @error('code') is-invalid @enderror"
+                                    placeholder="Enter login code"
+                                    autocomplete="off"
                                     required
-                                    autofocus
                                 >
 
-                                @error('otp')
+                                @error('code')
                                     <span class="text-danger d-block mt-2">
                                         {{ $message }}
                                     </span>
@@ -89,51 +72,49 @@
 
                             </div>
 
-
-                            {{-- VERIFY BUTTON --}}
                             <button
                                 type="submit"
                                 class="form-btn"
                             >
-                                {{ __('Verify OTP') }}
+                                {{ __('Login with Code') }}
                             </button>
 
                         </form>
 
 
-                        {{-- RESEND OTP --}}
-                        <div class="text-center mt-4">
+                        {{-- OR --}}
+                        <div class="or-divider">
 
-                            <span class="text-white-50">
-                                {{ __("Didn't receive the OTP?") }}
+                            <span>
+                                {{ __('OR') }}
                             </span>
-
-                            <form
-                                method="POST"
-                                action="{{ route('login.otp.resend') }}"
-                                class="d-inline"
-                            >
-                                @csrf
-
-                                <button
-                                    type="submit"
-                                    class="resend-btn"
-                                >
-                                    {{ __('Resend OTP') }}
-                                </button>
-                            </form>
 
                         </div>
 
 
-                        {{-- BACK TO LOGIN METHOD --}}
-                        <div class="text-center mt-3">
+                        {{-- OTP LOGIN --}}
+                        <form method="POST" action="{{ route('login.otp.send') }}">
+
+                            @csrf
+
+                            <button
+                                type="submit"
+                                class="otp-btn"
+                            >
+                                {{ __('Login with OTP') }}
+                            </button>
+
+                        </form>
+
+
+                        {{-- BACK --}}
+                        <div class="text-center mt-4">
 
                             <a
-                                href="{{ route('login.method') }}"
+                                href="{{ route('login') }}"
                                 class="back-login"
                             >
-                                ← {{ __('Back to Login Methods') }}
+                                ← {{ __('Back to Login') }}
                             </a>
 
                         </div>
@@ -158,9 +139,14 @@
         .login-hero {
             position: relative;
             min-height: 90.5vh;
-            background: url('{{ asset('frontend/images/auth-bg.png') }}') center/cover no-repeat;
+
+            background:
+                url('{{ asset('frontend/images/auth-bg.png') }}')
+                center/cover no-repeat;
+
             display: flex;
             align-items: center;
+
             overflow: hidden;
         }
 
@@ -178,13 +164,14 @@
 
         .auth-content {
             height: auto;
-            min-height: 500px;
         }
 
         .login-box {
             width: 90.5%;
             max-width: 650px;
-            padding: 35px 45px;
+
+            padding: 40px 45px;
+
             border-radius: 25px;
 
             background: rgba(255, 255, 255, 0.08);
@@ -214,6 +201,7 @@
         .auth-header h3 {
             line-height: 34px;
             margin-bottom: 8px;
+
             font-size: 32px;
             font-weight: 600;
         }
@@ -237,10 +225,15 @@
 
         .login-box .form-control {
             background: rgba(255, 255, 255, 0.15);
+
             border: 1px solid rgba(255, 255, 255, 0.4);
+
             color: #ffffff;
+
             border-radius: 12px;
-            padding: 14px;
+
+            padding: 12px 14px;
+
             height: 50px;
         }
 
@@ -250,88 +243,134 @@
 
         .login-box .form-control:focus {
             background: rgba(255, 255, 255, 0.18);
+
             border-color: rgba(255, 255, 255, 0.8);
+
             color: #ffffff;
+
             box-shadow: none;
         }
 
 
         /* =========================
-           OTP INPUT
-        ========================= */
-
-        .otp-input {
-            text-align: center;
-            letter-spacing: 10px;
-            font-size: 22px;
-            font-weight: 600;
-        }
-
-
-        /* =========================
-           BUTTON
+           MAIN BUTTON
         ========================= */
 
         .form-btn {
             background-color: #6C34CC !important;
-            color: #fff;
+
+            color: #ffffff;
+
             border: 2px solid rgba(255, 255, 255, 0.35);
+
             width: 100%;
+
             padding: 12px;
+
             border-radius: 6px;
+
             font-weight: 600;
+
             transition: 0.3s;
         }
 
         .form-btn:hover {
             background-color: #5528a8 !important;
-            color: #fff;
+
+            color: #ffffff;
         }
 
 
         /* =========================
-           RESEND BUTTON
+           OR DIVIDER
         ========================= */
 
-        .resend-btn {
-            border: none;
-            background: transparent;
-            color: #ffffff;
-            font-weight: 600;
-            padding: 0;
-            margin-left: 5px;
-            text-decoration: underline;
+        .or-divider {
+            display: flex;
+
+            align-items: center;
+
+            gap: 15px;
+
+            margin: 25px 0;
+
+            color: rgba(255, 255, 255, 0.65);
+
+            font-size: 14px;
+
+            text-align: center;
         }
 
-        .resend-btn:hover {
-            color: #e5d7ff;
+        .or-divider::before,
+        .or-divider::after {
+            content: "";
+
+            flex: 1;
+
+            height: 1px;
+
+            background: rgba(255, 255, 255, 0.3);
         }
 
 
         /* =========================
-           BACK BUTTON
+           OTP BUTTON
+        ========================= */
+
+        .otp-btn {
+            width: 100%;
+
+            padding: 12px;
+
+            border-radius: 6px;
+
+            background: transparent;
+
+            color: #ffffff;
+
+            border: 2px solid rgba(255, 255, 255, 0.5);
+
+            font-weight: 600;
+
+            transition: 0.3s;
+        }
+
+        .otp-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+
+            border-color: #ffffff;
+
+            color: #ffffff;
+        }
+
+
+        /* =========================
+           BACK
         ========================= */
 
         .back-login {
             color: rgba(255, 255, 255, 0.85);
+
             text-decoration: none;
+
             font-size: 14px;
+
             transition: 0.3s;
         }
 
         .back-login:hover {
             color: #ffffff;
+
             text-decoration: underline;
         }
 
 
         /* =========================
-           ALERT
+           ERROR
         ========================= */
 
-        .alert {
-            border-radius: 10px;
-            font-size: 14px;
+        .text-danger {
+            font-size: 13px;
         }
 
 
@@ -347,25 +386,23 @@
 
             .login-box {
                 margin: 40px 15px;
-                padding: 30px 25px;
+
+                padding: 30px;
             }
 
         }
+
 
         @media (max-width: 576px) {
 
             .login-box {
                 width: 95%;
+
                 padding: 25px 20px;
             }
 
             .auth-header h3 {
                 font-size: 26px;
-            }
-
-            .otp-input {
-                letter-spacing: 7px;
-                font-size: 20px;
             }
 
         }

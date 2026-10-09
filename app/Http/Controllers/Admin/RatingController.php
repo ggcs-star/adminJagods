@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Admin;
+
 use App\Enums\Status;
 use App\Enums\RatingStatus;
 use App\Http\Controllers\BackendController;
@@ -25,7 +26,7 @@ class RatingController extends BackendController
      */
     public function index()
     {
-        $this->data= RestaurantRating::latest()->get();
+        $this->data = RestaurantRating::latest()->get();
         return view('admin.rating.index', $this->data);
     }
 
@@ -56,13 +57,14 @@ class RatingController extends BackendController
             }
 
             $i           = 1;
-            $ratingArray = []; 
+            $ratingArray = [];
 
             if (!blank($ratings)) {
                 foreach ($ratings as $rating) {
                     $ratingArray[$i]                 = $rating;
-                    $ratingArray[$i]['user_name']     = $rating->user->name;
-                    $ratingArray[$i]['restaurant_name']   = Str::limit($rating->restaurant->name, 30);
+                    $ratingArray[$i]['user_name'] = $rating->user?->name ?? 'N/A';
+                    $ratingArray[$i]['restaurant_name'] = Str::limit($rating->restaurant?->name ?? 'N/A', 30);
+
                     $ratingArray[$i]['rating']       = number_format($rating->rating, 1);
                     $ratingArray[$i]['review']       = Str::limit($rating->review, 30);
                     $ratingArray[$i]['setID']        = $i;
@@ -72,9 +74,9 @@ class RatingController extends BackendController
 
             return Datatables::of($ratingArray)
                 ->addColumn('action', function ($rating) {
-                    
-                    $button_array['delete'] = ['route' => route('admin.rating.delete', $rating),'permission' => 'rating'];
-                    
+
+                    $button_array['delete'] = ['route' => route('admin.rating.delete', $rating), 'permission' => 'rating'];
+
                     return action_button($button_array);
                 })
                 ->escapeColumns([])

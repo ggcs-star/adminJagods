@@ -124,6 +124,19 @@ class MenuItemController extends BackendController
             }
         }
 
+        if ($request->hasFile('cover_images')) {
+
+            foreach ($request->file('cover_images') as $coverImage) {
+
+                if ($coverImage->isValid()) {
+
+                    $menuItem
+                        ->addMedia($coverImage)
+                        ->toMediaCollection('menu-item-covers');
+                }
+            }
+        }
+
         return redirect()->back()->withSuccess('The data inserted successfully!');
     }
 
@@ -210,6 +223,37 @@ class MenuItemController extends BackendController
             }
         }
 
+
+
+        if ($request->filled('deleted_cover_images')) {
+
+            foreach ($request->input('deleted_cover_images', []) as $mediaId) {
+
+                $media = $menuItem->media()
+                    ->where('id', $mediaId)
+                    ->where('collection_name', 'menu-item-covers')
+                    ->first();
+
+                if ($media) {
+                    $media->delete();
+                }
+            }
+        }
+
+
+
+        if ($request->hasFile('cover_images')) {
+
+            foreach ($request->file('cover_images') as $coverImage) {
+
+                if ($coverImage->isValid()) {
+
+                    $menuItem
+                        ->addMedia($coverImage)
+                        ->toMediaCollection('menu-item-covers');
+                }
+            }
+        }
         return redirect()->back()->withSuccess('The data updated successfully!');
     }
 
