@@ -70,14 +70,20 @@ use App\Http\Controllers\Frontend\AppRedirectController;
 use App\Http\Controllers\Auth\LoginController as UserLoginController;
 use App\Http\Controllers\Admin\CouponAccessController;
 use App\Http\Controllers\Api\InternalOrderNotificationController;
-
+use App\Http\Controllers\Admin\CateringPackageController;
+use App\Http\Controllers\Admin\CateringBookingController;
 Route::group(['middleware' => ['installed', 'license-activate']], function () {
 
-    Auth::routes(['verify' => false]);
-    Route::post('/login', [UserLoginController::class, 'login'])->middleware('throttle:1,1')->name('login');
-    Route::get('/login/otp', [UserLoginController::class, 'showOtpForm'])->name('login.otp');
-    Route::post('/login/otp', [UserLoginController::class, 'verifyOtp'])->middleware('throttle:5,1')->name('login.otp.verify');
-    Route::post('/login/otp/resend', [UserLoginController::class, 'resendOtp'])->middleware('throttle:1,1')->name('login.otp.resend');
+   Auth::routes(['verify' => false]);
+
+Route::post('/login', [UserLoginController::class, 'login'])->middleware('throttle:1,1')->name('login');
+
+Route::get('/login/method', [UserLoginController::class, 'showLoginMethod'])->name('login.method');
+Route::post('/login/code', [UserLoginController::class, 'loginWithCode'])->middleware('throttle:5,1')->name('login.code');
+Route::post('/login/otp/send', [UserLoginController::class, 'sendOtp'])->middleware('throttle:2,1')->name('login.otp.send');
+Route::get('/login/otp', [UserLoginController::class, 'showOtpForm'])->name('login.otp');
+Route::post('/login/otp', [UserLoginController::class, 'verifyOtp'])->middleware('throttle:5,1')->name('login.otp.verify');
+Route::post('/login/otp/resend', [UserLoginController::class, 'resendOtp']) ->middleware('throttle:1,1')->name('login.otp.resend');
 });
 
 Route::group(['middleware' => ['installed', 'not-verified']], function () {
@@ -417,4 +423,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'installed', 'licens
         'order-notifications',
         [InternalOrderNotificationController::class, 'latest']
     )->name('order.notifications');
+
+    Route::resource('catering-packages',CateringPackageController::class);
+    Route::resource('catering-bookings', CateringBookingController::class);
 });

@@ -41,4 +41,7 @@ return [
     'internal_api' => [
         'token' => env('INTERNAL_API_TOKEN'),
     ],
+    'login' => [
+        'access_code' => env('LOGIN_ACCESS_CODE'),
+    ],
 ];

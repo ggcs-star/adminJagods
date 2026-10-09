@@ -27,6 +27,7 @@ return array (
   'bank_details'                  => 'Bank Details',
   'administrator'                 => 'Administrators',
   'role'                          => 'Role',
+  'catering-packages'              => 'Catering',
   'customers'                     => 'Customers',
   'restaurant_owners'             => 'Restaurant Owners',
   'delivery_boys'                 => 'Delivery Boys',

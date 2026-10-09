@@ -135,6 +135,7 @@ class DashboardController extends BackendController
         $this->data['yearlyOrders']            = count($yearlyOrders);
         $this->data['totalDaliveryOrders']     = Order::with('user')->where(['delivery_boy_id' => auth()->user()->id])->latest()->count();
         $this->data['totalIncome']             = Order::where(['status' => OrderStatus::COMPLETED])->sum('paid_amount');
+        // dd($this->data['totalIncome']);
         $this->data['recentOrders']            = Order::with('user')->orderBy('id', 'desc')->whereDate('created_at', date('Y-m-d'))->orderowner()->get();
         $this->data['userCredit']              = currencyFormat(auth()->user()->balance->balance > 0 ? auth()->user()->balance->balance : 0);
         
