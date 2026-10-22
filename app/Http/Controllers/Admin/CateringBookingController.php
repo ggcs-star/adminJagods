@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\BackendController;
 use App\Models\CateringBooking;
 use Illuminate\Http\Request;
-
-class CateringBookingController extends Controller
+class CateringBookingController extends BackendController
 {
-
+    /**
+     * Display catering bookings.
+     */
     public function index(Request $request)
     {
         $request->validate([

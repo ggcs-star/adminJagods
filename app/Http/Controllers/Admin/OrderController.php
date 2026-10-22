@@ -26,6 +26,7 @@ use App\Notifications\OrderUpdated;
 use App\Http\Controllers\BackendController;
 use App\Models\Invoice;
 use App\Models\Coupon;
+
 class OrderController extends BackendController
 {
     /**
@@ -56,7 +57,7 @@ class OrderController extends BackendController
         $this->data['pending_order']   = $orders->where('status', OrderStatus::PENDING)->count();
         $this->data['process_order']   = $orders->where('status', OrderStatus::PROCESS)->count();
         $this->data['completed_order'] = $orders->where('status', OrderStatus::COMPLETED)->count();
-        $this->data['users'] = User::select('id','first_name','last_name','email')->orderBy('first_name')->get();
+        $this->data['users'] = User::select('id', 'first_name', 'last_name', 'email')->orderBy('first_name')->get();
         return view('admin.orders.index', $this->data);
     }
 
@@ -65,53 +66,53 @@ class OrderController extends BackendController
      *
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-public function show($id)
-{
-    $order = Order::query()
-        ->orderowner()
-        ->with([
-            'user',
-            'delivery',
-            'restaurant',
-            'discounts',
-            'module',
-            'device',
-            'items',
-        ])
-        ->findOrFail($id);
-    if ($order->discounts->isNotEmpty()) {
+    public function show($id)
+    {
+        $order = Order::query()
+            ->orderowner()
+            ->with([
+                'user',
+                'delivery',
+                'restaurant',
+                'discounts',
+                'module',
+                'device',
+                'items',
+            ])
+            ->findOrFail($id);
+        if ($order->discounts->isNotEmpty()) {
 
-        $couponIds = $order->discounts
-            ->pluck('coupon_id')
-            ->filter()
-            ->unique()
-            ->values();
+            $couponIds = $order->discounts
+                ->pluck('coupon_id')
+                ->filter()
+                ->unique()
+                ->values();
 
-        $coupons = Coupon::query()
-            ->whereIn('id', $couponIds)
-            ->get()
-            ->keyBy('id');
+            $coupons = Coupon::query()
+                ->whereIn('id', $couponIds)
+                ->get()
+                ->keyBy('id');
 
-        $order->discounts->each(function ($discount) use ($coupons) {
-            $discount->setRelation(
-                'coupons',
-                $coupons->get($discount->coupon_id)
+            $order->discounts->each(function ($discount) use ($coupons) {
+                $discount->setRelation(
+                    'coupons',
+                    $coupons->get($discount->coupon_id)
+                );
+            });
+        }
+
+        if (!empty($order->invoice_id)) {
+            $order->setRelation(
+                'invoice',
+                Invoice::query()->find($order->invoice_id)
             );
-        });
+        }
+
+        $this->data['order'] = $order;
+        $this->data['items'] = $order->items;
+
+        return view('admin.orders.view', $this->data);
     }
-
-    if (!empty($order->invoice_id)) {
-        $order->setRelation(
-            'invoice',
-            Invoice::query()->find($order->invoice_id)
-        );
-    }
-
-    $this->data['order'] = $order;
-    $this->data['items'] = $order->items;
-
-    return view('admin.orders.view', $this->data);
-}
 
     /**
      * @param $id

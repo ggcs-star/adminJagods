@@ -3,8 +3,8 @@
 @section('content')
 
     <!--====================================
-                                    CONTENT PART START
-                        =====================================-->
+                                                                    CONTENT PART START
+                                                        =====================================-->
     <div class="row">
         <div class="col-12">
             <div class="custome-breadcrumb">
@@ -475,7 +475,7 @@
 
                                         <!-- Left Side: Coupon Name & Code -->
                                         <div>
-                                             <p class="text-sm font-semibold text-heading">
+                                            <p class="text-sm font-semibold text-heading">
                                                 {{ $discount->coupons->coupon_for ?? 'jagods' }}
                                             </p>
                                             <p class="text-sm font-semibold text-heading">
@@ -563,8 +563,11 @@
                                     <span class="text-sm text-[#374151]">{{ $order->mobile ?? null }}</span>
                                 </li>
                             </ul>
-
-                            <!-- YAHAN ADDRESS KE LIYE SAFE IF CHECK ADD KIYA -->
+                            @php
+                                $addressData = is_string($order->address)
+                                    ? json_decode($order->address)
+                                    : $order->address;
+                            @endphp
                             @if ($order->order_type != 2 && !blank($order->address))
                                 <div class="flex items-start gap-3 pt-4 border-t border-[#EFF0F6]">
                                     <svg class="flex-shrink-0" width="24" height="24" viewBox="0 0 24 24"
@@ -576,6 +579,39 @@
                                     <span
                                         class="text-sm w-full max-w-[200px] leading-6 text-[#374151]">{{ orderAddress($order->address) }}</span>
                                 </div>
+
+                                @if (is_numeric($order->lat) && is_numeric($order->long))
+                                    <a href="https://www.google.com/maps?q={{ $order->lat }},{{ $order->long }}"
+                                        target="_blank" rel="noopener noreferrer"
+                                        onmouseover="this.style.backgroundColor='#b91c1c'; this.style.boxShadow='0 8px 18px rgba(220,38,38,0.35)';"
+                                        onmouseout="this.style.backgroundColor='#dc2626'; this.style.boxShadow='0 4px 10px rgba(220,38,38,0.2)';"
+                                        style="
+                                            display: inline-flex;
+                                            align-items: center;
+                                            gap: 8px;
+                                            margin-top: 12px;
+                                            padding: 10px 20px;
+                                            background-color: #dc2626;
+                                            color: #ffffff;
+                                            font-size: 14px;
+                                            font-weight: 600;
+                                            text-decoration: none;
+                                            border: none;
+                                            border-radius: 12px;
+                                            box-shadow: 0 4px 10px rgba(220,38,38,0.2);
+                                            transition: all 0.2s ease-in-out;
+                                            cursor: pointer;
+                                        ">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M17.657 16.657 13.414 20.9a2 2 0 0 1-2.828 0l-4.243-4.243a8 8 0 1 1 11.314 0Z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                d="M15 11a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                        </svg>
+                                        View on Google Maps
+                                    </a>
+                                @endif
                             @endif
                         </div>
                     </div>
@@ -583,9 +619,7 @@
             </div>
         </div>
     </div>
-    <!--====================================
-                                    CONTENT PART END
-                        =====================================-->
+
 
     <section class="section">
         <div id="invoice-print" class="hidden">

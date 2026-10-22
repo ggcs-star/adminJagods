@@ -30,24 +30,16 @@
         {{-- Filters --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-6">
             <div class="p-5">
-                <form
-                    action="{{ route('admin.catering-bookings.index') }}"
-                    method="GET"
-                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
-                >
+                <form action="{{ route('admin.catering-bookings.index') }}" method="GET"
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {{-- Search --}}
                     <div class="lg:col-span-2">
                         <label for="search" class="block text-sm font-medium text-gray-700 mb-1">
                             Search
                         </label>
-                        <input
-                            type="text"
-                            name="search"
-                            id="search"
-                            value="{{ request('search') }}"
+                        <input type="text" name="search" id="search" value="{{ request('search') }}"
                             placeholder="Customer, mobile, package, email or ID..."
-                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                        >
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
                     </div>
 
                     {{-- Status --}}
@@ -55,18 +47,12 @@
                         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">
                             Status
                         </label>
-                        <select
-                            name="status"
-                            id="status"
-                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                        >
+                        <select name="status" id="status"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
                             <option value="">All Statuses</option>
 
                             @foreach ($statuses as $status)
-                                <option
-                                    value="{{ $status }}"
-                                    @selected(request('status') !== null && request('status') !== '' && (string) request('status') === (string) $status)
-                                >
+                                <option value="{{ $status }}" @selected(request('status') !== null && request('status') !== '' && (string) request('status') === (string) $status)>
                                     Status {{ $status }}
                                 </option>
                             @endforeach
@@ -78,31 +64,29 @@
                         <label for="event_date" class="block text-sm font-medium text-gray-700 mb-1">
                             Event Date
                         </label>
-                        <input
-                            type="date"
-                            name="event_date"
-                            id="event_date"
-                            value="{{ request('event_date') }}"
-                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                        >
+                        <input type="date" name="event_date" id="event_date" value="{{ request('event_date') }}"
+                            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200">
                     </div>
 
                     {{-- Buttons --}}
-                    <div class="lg:col-span-4 flex flex-wrap gap-3 pt-1">
-                        <button
-                            type="submit"
-                            class="rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 text-sm font-semibold transition"
-                        >
-                            Search / Filter
+                    <div class="lg:col-span-4 flex flex-wrap items-center gap-3 pt-2">
+
+                        <!-- Search / Filter Button -->
+                        <button type="submit" style="background: linear-gradient(135deg, #dc2626, #b91c1c);"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white shadow-md shadow-red-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-200 active:translate-y-0">
+                            <i class="fas fa-search"></i>
+                            <span>Search / Filter</span>
                         </button>
 
-                        <a
-                            href="{{ route('admin.catering-bookings.index') }}"
-                            class="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 text-sm font-semibold transition"
-                        >
-                            Reset
+                        <!-- Reset Button -->
+                        <a href="{{ route('admin.catering-bookings.index') }}"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:bg-gray-50 hover:shadow-md active:translate-y-0">
+                            <i class="fas fa-undo-alt text-gray-500"></i>
+                            <span>Reset</span>
                         </a>
+
                     </div>
+
                 </form>
             </div>
         </div>
@@ -177,7 +161,8 @@
 
                                 {{-- Guests --}}
                                 <td class="px-5 py-4 whitespace-nowrap">
-                                    <span class="inline-flex rounded-full bg-blue-50 text-blue-700 px-3 py-1 text-xs font-semibold border border-blue-100">
+                                    <span
+                                        class="inline-flex rounded-full bg-blue-50 text-blue-700 px-3 py-1 text-xs font-semibold border border-blue-100">
                                         {{ number_format($booking->guest_count) }} guests
                                     </span>
                                 </td>
@@ -194,17 +179,16 @@
 
                                 {{-- Status --}}
                                 <td class="px-5 py-4 whitespace-nowrap">
-                                    <span class="inline-flex rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-xs font-semibold">
+                                    <span
+                                        class="inline-flex rounded-full bg-gray-100 text-gray-700 px-3 py-1 text-xs font-semibold">
                                         Status {{ $booking->status }}
                                     </span>
                                 </td>
 
                                 {{-- Actions --}}
                                 <td class="px-5 py-4 text-right whitespace-nowrap">
-                                    <a
-                                        href="{{ route('admin.catering-bookings.show', $booking->id) }}"
-                                        class="inline-flex items-center rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 font-semibold text-xs transition"
-                                    >
+                                    <a href="{{ route('admin.catering-bookings.show', $booking->id) }}"
+                                        class="inline-flex items-center rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 font-semibold text-xs transition">
                                         View Details
                                     </a>
                                 </td>
@@ -227,16 +211,135 @@
 
             {{-- Pagination --}}
             @if ($bookings->hasPages() || $bookings->total() > 0)
-                <div class="border-t border-gray-200 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <p class="text-sm text-gray-500">
-                        Showing {{ $bookings->firstItem() ?? 0 }}
-                        to {{ $bookings->lastItem() ?? 0 }}
-                        of {{ $bookings->total() }} bookings
-                    </p>
+                <div
+                    class="border-t border-gray-200 bg-gray-50/70 px-5 py-4
+               flex flex-col gap-4
+               sm:flex-row sm:items-center sm:justify-between">
 
-                    <div>
-                        {{ $bookings->links() }}
+                    {{-- Booking Count --}}
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="flex h-10 w-10 items-center justify-center
+                       rounded-xl bg-red-50 text-red-600">
+                            <i class="fas fa-calendar-check text-lg"></i>
+                        </div>
+
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">
+                                Booking Records
+                            </p>
+
+                            <p class="text-xs text-gray-500">
+                                Showing
+                                <span class="font-semibold text-gray-700">
+                                    {{ $bookings->firstItem() ?? 0 }}–{{ $bookings->lastItem() ?? 0 }}
+                                </span>
+                                of
+                                <span class="font-semibold text-gray-700">
+                                    {{ $bookings->total() }}
+                                </span>
+                                bookings
+                            </p>
+                        </div>
                     </div>
+
+                    {{-- Pagination Links --}}
+                    {{-- Pagination --}}
+                    @if ($bookings->hasPages())
+                        <div class="mt-4 border-t border-gray-200 bg-white px-4 py-5 sm:px-6">
+                            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+                                {{-- Left: Page Information --}}
+                                <div class="text-sm text-gray-500">
+                                    Page
+                                    <span class="font-semibold text-gray-900">
+                                        {{ $bookings->currentPage() }}
+                                    </span>
+                                    of
+                                    <span class="font-semibold text-gray-900">
+                                        {{ $bookings->lastPage() }}
+                                    </span>
+
+                                    <span class="mx-2 text-gray-300">|</span>
+
+                                    Total
+                                    <span class="font-semibold text-gray-900">
+                                        {{ $bookings->total() }}
+                                    </span>
+                                    bookings
+                                </div>
+
+                                {{-- Right: Pagination --}}
+                                <div class="flex items-center justify-between gap-2 sm:justify-end">
+
+                                    {{-- Previous --}}
+                                    @if ($bookings->onFirstPage())
+                                        <span
+                                            class="inline-flex cursor-not-allowed items-center gap-2 rounded-lg
+                               border border-gray-200 bg-gray-50 px-3 py-2
+                               text-sm font-medium text-gray-400">
+                                            <i class="fas fa-chevron-left text-xs"></i>
+                                            <span>Previous</span>
+                                        </span>
+                                    @else
+                                        <a href="{{ $bookings->previousPageUrl() }}"
+                                            class="inline-flex items-center gap-2 rounded-lg border border-gray-200
+                               bg-white px-3 py-2 text-sm font-medium text-gray-700
+                               shadow-sm transition hover:border-red-300 hover:bg-red-50
+                               hover:text-red-600">
+                                            <i class="fas fa-chevron-left text-xs"></i>
+                                            <span>Previous</span>
+                                        </a>
+                                    @endif
+
+                                    {{-- Page Numbers --}}
+                                    <div class="flex items-center gap-1">
+                                        @foreach ($bookings->getUrlRange(max(1, $bookings->currentPage() - 2), min($bookings->lastPage(), $bookings->currentPage() + 2)) as $page => $url)
+                                            @if ($page == $bookings->currentPage())
+                                                <span aria-current="page"
+                                                    class="inline-flex h-9 min-w-9 items-center justify-center
+                                       rounded-lg bg-red-600 px-3 text-sm font-semibold
+                                       text-white shadow-sm shadow-red-200">
+                                                    {{ $page }}
+                                                </span>
+                                            @else
+                                                <a href="{{ $url }}"
+                                                    class="inline-flex h-9 min-w-9 items-center justify-center
+                                       rounded-lg border border-gray-200 bg-white px-3
+                                       text-sm font-medium text-gray-600 transition
+                                       hover:border-red-300 hover:bg-red-50 hover:text-red-600">
+                                                    {{ $page }}
+                                                </a>
+                                            @endif
+                                        @endforeach
+                                    </div>
+
+                                    {{-- Next --}}
+                                    @if ($bookings->hasMorePages())
+                                        <a href="{{ $bookings->nextPageUrl() }}"
+                                            class="inline-flex items-center gap-2 rounded-lg border border-gray-200
+                               bg-white px-3 py-2 text-sm font-medium text-gray-700
+                               shadow-sm transition hover:border-red-300 hover:bg-red-50
+                               hover:text-red-600">
+                                            <span>Next</span>
+                                            <i class="fas fa-chevron-right text-xs"></i>
+                                        </a>
+                                    @else
+                                        <span
+                                            class="inline-flex cursor-not-allowed items-center gap-2 rounded-lg
+                               border border-gray-200 bg-gray-50 px-3 py-2
+                               text-sm font-medium text-gray-400">
+                                            <span>Next</span>
+                                            <i class="fas fa-chevron-right text-xs"></i>
+                                        </span>
+                                    @endif
+
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+
                 </div>
             @endif
         </div>
