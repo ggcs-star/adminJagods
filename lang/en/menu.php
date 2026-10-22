@@ -28,6 +28,7 @@ return array (
   'administrator'                 => 'Administrators',
   'role'                          => 'Role',
   'catering-packages'              => 'Catering',
+  'catering-bookings'              => 'Catering Bookings',
   'customers'                     => 'Customers',
   'restaurant_owners'             => 'Restaurant Owners',
   'delivery_boys'                 => 'Delivery Boys',
