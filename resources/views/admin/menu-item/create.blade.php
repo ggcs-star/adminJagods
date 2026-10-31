@@ -301,7 +301,30 @@
                                     <small class="db-field-alert">{{ $message }}</small>
                                 @enderror
                             </div>
-
+{{-- Recommended Items / Cross Sell --}}
+    <div class="form-col-12 sm:form-col-6 md:form-col-4 xl:form-col-3">
+        <label class="db-field-title" for="recommended_items">
+            Recommended Items (Suggestions)
+        </label>
+        <div class="db-field-down-arrow">
+            <select name="recommended_items[]" id="recommended_items" 
+                class="db-field-control custom-select2" multiple="multiple">
+                @if (!blank($menuItems))
+                    @foreach ($menuItems as $item)
+                        <!-- data-image aur data-price attribute me values pass ki hain -->
+                        <option value="{{ $item->id }}" 
+                                data-image="{{ $item->image }}" 
+                                data-price="{{ $item->unit_price }}">
+                            {{ $item->name }}
+                        </option>
+                    @endforeach
+                @endif
+            </select>
+        </div>
+        @error('recommended_items')
+            <small class="db-field-alert">{{ $message }}</small>
+        @enderror
+    </div>
                             {{-- Description --}}
                             <div class="form-col-12">
                                 <label class="db-field-title" for="description">{{ __('levels.description') }}</label>

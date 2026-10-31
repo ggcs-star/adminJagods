@@ -18,7 +18,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Yajra\Datatables\Datatables;
 use App\Enums\Module;
-
+use App\Models\MenuItemRecommendation;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 class MenuItemController extends BackendController
 {
 
@@ -56,17 +58,11 @@ class MenuItemController extends BackendController
      */
     public function create()
     {
-        $this->data['categories'] = Category::where(
-            'status',
-            CategoryStatus::ACTIVE
-        )->get();
-
-        $this->data['restaurants'] = Restaurant::where(
-            'status',
-            Status::ACTIVE
-        )->get();
-
+        $this->data['categories'] = Category::where('status', CategoryStatus::ACTIVE)->get();
+        $this->data['restaurants'] = Restaurant::where('status', Status::ACTIVE)->get();
         $this->data['modules'] = Module::all();
+
+        $this->data['menuItems'] = MenuItem::where('status', Status::ACTIVE)->get();
 
         return view('admin.menu-item.create', $this->data);
     }
@@ -109,7 +105,20 @@ class MenuItemController extends BackendController
         $menuItem->save();;
 
         $menuItem->categories()->sync($request->get('categories'));
-
+        if ($request->has('recommended_items')) {
+            $recommendations = [];
+            foreach ($request->get('recommended_items') as $index => $recommendedId) {
+                $recommendations[] = [
+                    'menu_item_id' => $menuItem->id,
+                    'recommended_menu_item_id' => $recommendedId,
+                    'sort_order' => $index, // Jis order me select kiya wahi priority banegi
+                    'status' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            \App\Models\MenuItemRecommendation::insert($recommendations);
+        }
         //Store Image
         if ($request->hasFile('images')) {
 
@@ -164,7 +173,33 @@ class MenuItemController extends BackendController
         $this->data['menuItem_categories'] = $menuItem->categories()->pluck('id')->toArray();
         $this->data['restaurants'] = Restaurant::where(['status' => Status::ACTIVE])->get();
         $this->data['modules'] = Module::all();
-        // dd( $this->data['menuItem']);
+        // Existing recommended IDs
+        $this->data['recommended_items'] = MenuItemRecommendation::where(
+            'menu_item_id',
+            $menuItem->id
+        )
+            ->pluck('recommended_menu_item_id')
+            ->map(fn($id) => (int) $id)
+            ->toArray();
+
+        $recommendedIds = $this->data['recommended_items'];
+
+        $this->data['allMenuItems'] = MenuItem::where(
+            'id',
+            '!=',
+            $menuItem->id
+        )
+            ->where(function ($query) use ($recommendedIds) {
+                $query->where('status', Status::ACTIVE);
+
+                if (!empty($recommendedIds)) {
+                    $query->orWhereIn('id', $recommendedIds);
+                }
+            })
+            ->orderBy('name')
+            ->get();
+
+        // dd( $this->data['allMenuItems']);
         return view('admin.menu-item.edit', $this->data);
     }
 
@@ -195,7 +230,22 @@ class MenuItemController extends BackendController
         $menuItem->save();
 
         $menuItem->categories()->sync($request->get('categories'));
+        \App\Models\MenuItemRecommendation::where('menu_item_id', $menuItem->id)->delete();
 
+        if ($request->has('recommended_items')) {
+            $recommendations = [];
+            foreach ($request->get('recommended_items') as $index => $recommendedId) {
+                $recommendations[] = [
+                    'menu_item_id' => $menuItem->id,
+                    'recommended_menu_item_id' => $recommendedId,
+                    'sort_order' => $index,
+                    'status' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            \App\Models\MenuItemRecommendation::insert($recommendations);
+        }
         if ($request->filled('deleted_images')) {
 
             foreach ($request->input('deleted_images', []) as $mediaId) {
@@ -268,6 +318,7 @@ class MenuItemController extends BackendController
         MenuItem::owner()->findOrFail($id)->delete();
         return redirect()->back()->withSuccess('The Data Deleted Successfully');
     }
+
 
     private function getMenuItem($request)
     {
@@ -346,7 +397,37 @@ class MenuItemController extends BackendController
                         'permission' => 'menu-items_delete'
                     ];
 
-                    return action_button($button_array);
+                    // Generate existing action buttons
+                    $buttonsHtml = action_button($button_array);
+
+                    // Recommended Items Link Button
+                    if (auth()->user()->can('menu-items_edit')) {
+
+                        $linkUrl = route(
+                            'admin.menu-items.recommendations',
+                            $menuItem
+                        );
+
+                        $linkBtn = '
+                        <a href="' . $linkUrl . '"
+                           class="bg-indigo-500 hover:bg-indigo-600 text-white w-8 h-8 rounded-md flex items-center justify-center inline-flex ml-1 shadow-sm transition-all"
+                           title="Link Recommended Items">
+
+                            <i class="fa-solid fa-link text-xs"></i>
+
+                        </a>
+                    ';
+
+                        // Append recommendation button
+                        $buttonsHtml = '
+                        <div class="flex items-center">
+                            ' . $buttonsHtml . '
+                            ' . $linkBtn . '
+                        </div>
+                    ';
+                    }
+
+                    return $buttonsHtml;
                 })
 
                 ->editColumn('id', function ($menuItem) use (&$i) {
@@ -394,6 +475,7 @@ class MenuItemController extends BackendController
             $this->data
         );
     }
+
 
     public function getMedia(Request $request)
     {
@@ -633,5 +715,106 @@ class MenuItemController extends BackendController
         $menuNumber = rand(1000, 9999);
         $menuNumber = in_array($menuNumber, $menu_array) ? $this->checkMenuNumber($menu_array) : $menuNumber;
         return $menuNumber;
+    }
+
+ public function recommendations(MenuItem $menuItem)
+    {
+        $this->data['menuItem'] = $menuItem;
+
+        // IDs of already-linked items, in the order they were saved
+        $recommendedIds = MenuItemRecommendation::where('menu_item_id', $menuItem->id)
+            ->orderBy('sort_order')
+            ->pluck('recommended_menu_item_id')
+            ->map(fn ($id) => (int) $id)
+            ->toArray();
+
+        // Hydrate ONLY the pre-selected items (usually < 20 rows)
+        $recommendedItems = empty($recommendedIds)
+            ? collect()
+            : MenuItem::whereIn('id', $recommendedIds)
+                ->get()
+                ->sortBy(fn ($item) => array_search($item->id, $recommendedIds, true))
+                ->values();
+
+        $this->data['recommended_items'] = $recommendedItems;
+        $this->data['recommended_ids']   = $recommendedIds;
+
+        // Cheap count for the info banner
+        $this->data['totalMenuItems'] = MenuItem::where('id', '!=', $menuItem->id)
+            ->where('status', Status::ACTIVE)
+            ->count();
+
+        return view('admin.menu-item.recommendations', $this->data);
+    }
+
+    /**
+     * AJAX endpoint for Select2.
+     * Returns 20 items per page — fast even with thousands of rows.
+     */
+    public function searchMenuItems(Request $request, MenuItem $menuItem)
+    {
+        $term    = trim((string) $request->get('q', ''));
+        $page    = max(1, (int) $request->get('page', 1));
+        $perPage = 20;
+
+        $query = MenuItem::query()
+            ->where('id', '!=', $menuItem->id)
+            ->where('status', Status::ACTIVE)
+            ->when($term !== '', fn ($q) => $q->where('name', 'like', '%' . $term . '%'))
+            ->orderBy('name');
+
+        $total = $query->count();
+        $items = $query->skip(($page - 1) * $perPage)->take($perPage)->get();
+
+        return response()->json([
+            'results' => $items->map(fn ($item) => [
+                'id'    => $item->id,
+                'text'  => $item->name,
+                'price' => number_format($item->unit_price, 2),
+                'image' => $item->getFirstMediaUrl('menu-items') ?: asset('images/default.png'),
+            ])->values(),
+            'pagination' => [
+                'more' => ($page * $perPage) < $total,
+            ],
+        ]);
+    }
+
+    /**
+     * Persist the selected recommendations.
+     */
+    public function syncRecommendations(Request $request, MenuItem $menuItem)
+    {
+        $validated = $request->validate([
+            'recommended_items'   => ['nullable', 'array', 'max:50'],
+            'recommended_items.*' => [
+                'integer',
+                'exists:menu_items,id',
+                Rule::notIn([$menuItem->id]), // prevent self-reference
+            ],
+        ], [
+            'recommended_items.max' => 'You can link at most 50 recommended items.',
+        ]);
+
+        $ids = collect($validated['recommended_items'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        DB::transaction(function () use ($menuItem, $ids) {
+            MenuItemRecommendation::where('menu_item_id', $menuItem->id)->delete();
+
+            foreach ($ids as $index => $id) {
+                MenuItemRecommendation::create([
+                    'menu_item_id'             => $menuItem->id,
+                    'recommended_menu_item_id' => $id,
+                    'sort_order'               => $index,
+                    'status'                   => 1,
+                ]);
+            }
+        });
+
+        return redirect()
+            ->route('admin.menu-items.recommendations', $menuItem)
+            ->with('success', 'Recommended items linked successfully!');
     }
 }

@@ -1,7 +1,6 @@
 @extends('admin.app')
 
 @section('content')
-
     <div class="row">
 
         <div class="col-12">
@@ -22,11 +21,7 @@
 
                 <div class="db-card-body">
 
-                    <form
-                        action="{{ route('admin.banner.update', $banner) }}"
-                        method="POST"
-                        enctype="multipart/form-data"
-                    >
+                    <form action="{{ route('admin.banner.update', $banner) }}" method="POST" enctype="multipart/form-data">
 
                         @csrf
                         @method('PUT')
@@ -42,27 +37,20 @@
 
                                 <div class="db-field-down-arrow">
 
-                                    <select
-                                        name="target_type"
-                                        id="target_type"
-                                        class="db-field-control appearance-none @error('target_type') invalid red-border @enderror"
-                                    >
+                                    <select name="target_type" id="target_type"
+                                        class="db-field-control appearance-none @error('target_type') invalid red-border @enderror">
 
                                         <option value="">
                                             Select Target Type
                                         </option>
 
-                                        <option
-                                            value="restaurant"
-                                            {{ old('target_type', $banner->target_type) == 'restaurant' ? 'selected' : '' }}
-                                        >
+                                        <option value="restaurant"
+                                            {{ old('target_type', $banner->target_type) == 'restaurant' ? 'selected' : '' }}>
                                             Restaurant
                                         </option>
 
-                                        <option
-                                            value="category"
-                                            {{ old('target_type', $banner->target_type) == 'category' ? 'selected' : '' }}
-                                        >
+                                        <option value="category"
+                                            {{ old('target_type', $banner->target_type) == 'category' ? 'selected' : '' }}>
                                             Category
                                         </option>
 
@@ -88,11 +76,8 @@
 
                                 <div class="db-field-down-arrow">
 
-                                    <select
-                                        name="target_id"
-                                        id="target_id"
-                                        class="db-field-control appearance-none @error('target_id') invalid red-border @enderror"
-                                    >
+                                    <select name="target_id" id="target_id"
+                                        class="db-field-control appearance-none @error('target_id') invalid red-border @enderror">
 
                                         <option value="">
                                             Select Target
@@ -111,6 +96,39 @@
                             </div>
 
 
+                            {{-- Module --}}
+                            <div class="form-col-12 sm:form-col-6 md:form-col-4">
+
+                                <label class="db-field-title required">
+                                    Select Module
+                                </label>
+
+                                <div class="db-field-down-arrow">
+
+                                    <select name="module_id" id="module_id"
+                                        class="db-field-control appearance-none @error('module_id') invalid red-border @enderror">
+
+                                        <option value="">Select Module</option>
+
+                                        @foreach (\App\Enums\Module::all() as $id => $slug)
+                                            <option value="{{ $id }}"
+                                                {{ old('module_id', $banner->module_id) == $id ? 'selected' : '' }}>
+                                                {{ ucwords(str_replace('_', ' ', $slug)) }}
+                                            </option>
+                                        @endforeach
+
+                                    </select>
+
+                                </div>
+
+                                @error('module_id')
+                                    <small class="db-field-alert">
+                                        {{ $message }}
+                                    </small>
+                                @enderror
+
+                            </div>
+
                             {{-- Show On Landing --}}
                             <div class="form-col-12 sm:form-col-6 md:form-col-4">
 
@@ -120,22 +138,16 @@
 
                                 <div class="db-field-down-arrow">
 
-                                    <select
-                                        name="show_on_landing"
-                                        class="db-field-control appearance-none @error('show_on_landing') invalid red-border @enderror"
-                                    >
+                                    <select name="show_on_landing"
+                                        class="db-field-control appearance-none @error('show_on_landing') invalid red-border @enderror">
 
-                                        <option
-                                            value="0"
-                                            {{ old('show_on_landing', $banner->show_on_landing) == 0 ? 'selected' : '' }}
-                                        >
+                                        <option value="0"
+                                            {{ old('show_on_landing', $banner->show_on_landing) == 0 ? 'selected' : '' }}>
                                             No
                                         </option>
 
-                                        <option
-                                            value="1"
-                                            {{ old('show_on_landing', $banner->show_on_landing) == 1 ? 'selected' : '' }}
-                                        >
+                                        <option value="1"
+                                            {{ old('show_on_landing', $banner->show_on_landing) == 1 ? 'selected' : '' }}>
                                             Yes
                                         </option>
 
@@ -159,12 +171,9 @@
                                     {{ __('levels.title') }}
                                 </label>
 
-                                <input
-                                    type="text"
-                                    name="name"
+                                <input type="text" name="name"
                                     class="db-field-control @error('name') invalid @enderror"
-                                    value="{{ old('name', $banner->title) }}"
-                                >
+                                    value="{{ old('name', $banner->title) }}">
 
                                 @error('name')
                                     <small class="db-field-alert">
@@ -182,12 +191,9 @@
                                     {{ __('levels.url') }}
                                 </label>
 
-                                <input
-                                    type="text"
-                                    name="url"
+                                <input type="text" name="url"
                                     class="db-field-control @error('url') invalid @enderror"
-                                    value="{{ old('url', $banner->link) }}"
-                                >
+                                    value="{{ old('url', $banner->link) }}">
 
                                 @error('url')
                                     <small class="db-field-alert">
@@ -207,20 +213,14 @@
 
                                 <div class="db-field-down-arrow">
 
-                                    <select
-                                        name="status"
-                                        class="db-field-control appearance-none @error('status') invalid red-border @enderror"
-                                    >
+                                    <select name="status"
+                                        class="db-field-control appearance-none @error('status') invalid red-border @enderror">
 
                                         @foreach (trans('statuses') as $key => $status)
-
-                                            <option
-                                                value="{{ $key }}"
-                                                {{ old('status', $banner->status) == $key ? 'selected' : '' }}
-                                            >
+                                            <option value="{{ $key }}"
+                                                {{ old('status', $banner->status) == $key ? 'selected' : '' }}>
                                                 {{ $status }}
                                             </option>
-
                                         @endforeach
 
                                     </select>
@@ -243,12 +243,9 @@
                                     {{ __('levels.description') }}
                                 </label>
 
-                                <input
-                                    type="text"
-                                    name="description"
+                                <input type="text" name="description"
                                     class="db-field-control @error('description') invalid @enderror"
-                                    value="{{ old('description', $banner->short_description) }}"
-                                >
+                                    value="{{ old('description', $banner->short_description) }}">
 
                                 @error('description')
                                     <small class="db-field-alert">
@@ -262,20 +259,13 @@
                             {{-- Image --}}
                             <div class="form-col-12 sm:form-col-6 md:form-col-4">
 
-                                <label
-                                    class="db-field-title"
-                                    for="customFile"
-                                >
+                                <label class="db-field-title" for="customFile">
                                     {{ __('levels.image') }}
                                 </label>
 
-                                <input
-                                    name="image"
-                                    type="file"
-                                    class="db-field-control @error('image') invalid @enderror"
-                                    id="customFile"
-                                    onchange="readURL(this);"
-                                >
+                                <input name="image" type="file"
+                                    class="db-field-control @error('image') invalid @enderror" id="customFile"
+                                    onchange="readURL(this);">
 
                                 @if ($errors->has('image'))
                                     <small class="db-field-alert">
@@ -289,10 +279,7 @@
                             {{-- Submit --}}
                             <div class="form-col-12">
 
-                                <button
-                                    class="db-btn text-white bg-primary"
-                                    type="submit"
-                                >
+                                <button class="db-btn text-white bg-primary" type="submit">
                                     <i class="fa-solid fa-circle-check"></i>
                                     <span>{{ __('levels.submit') }}</span>
                                 </button>
@@ -310,12 +297,10 @@
         </div>
 
     </div>
-
 @endsection
 
 
 @push('js')
-
     <script>
         const restaurants = @json($restaurants ?? []);
         const categories = @json($categories ?? []);
@@ -325,5 +310,4 @@
     </script>
 
     <script src="{{ asset('js/banner/edit.js') }}"></script>
-
 @endpush

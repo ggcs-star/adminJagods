@@ -318,3 +318,42 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 });
+
+/* ============================================================
+ * Recommended Items Select2 (With Image & Price)
+ * ============================================================ */
+$(document).ready(function () {
+    
+    // Custom function to format dropdown items
+    function formatMenuItem(item) {
+        if (!item.id) {
+            return item.text;
+        }
+
+        // Data attributes read karein (Jo html me pass kiye the)
+        var imageUrl = $(item.element).data('image') || 'https://via.placeholder.com/50';
+        var price = $(item.element).data('price') || '0.00';
+        
+        // Beautiful Tailwind UI design custom option ke liye
+        var $item = $(
+            '<div class="flex items-center gap-3 py-1">' +
+                '<img src="' + imageUrl + '" style="width: 40px; height: 40px; border-radius: 6px; object-fit: cover; box-shadow: 0 1px 3px rgba(0,0,0,0.1);" />' +
+                '<div class="flex flex-col">' +
+                    '<span class="text-sm font-semibold text-gray-800">' + item.text + '</span>' +
+                    '<span class="text-xs text-gray-500">Price: ₹' + parseFloat(price).toFixed(2) + '</span>' +
+                '</div>' +
+            '</div>'
+        );
+        return $item;
+    }
+
+    // Initialize Recommended Items Select2
+    $('#recommended_items').select2({
+        placeholder: 'Select items to recommend...',
+        allowClear: true,
+        width: '100%',
+        templateResult: formatMenuItem,       // Dropdown options me design lagayega
+        templateSelection: formatMenuItem     // Select hone ke baad design lagayega
+    });
+
+});

@@ -90,6 +90,40 @@
                                 @enderror
 
                             </div>
+                            
+{{-- Module --}}
+<div class="form-col-12 sm:form-col-6 md:form-col-4">
+
+    <label class="db-field-title required">
+        Select Module
+    </label>
+
+    <div class="db-field-down-arrow">
+
+        <select name="module_id" id="module_id"
+            class="db-field-control appearance-none @error('module_id') invalid red-border @enderror">
+
+            <option value="">Select Module</option>
+
+            @foreach (\App\Enums\Module::all() as $id => $slug)
+                <option value="{{ $id }}"
+                    {{ old('module_id') == $id ? 'selected' : '' }}>
+                    {{ ucwords(str_replace('_', ' ', $slug)) }}
+                </option>
+            @endforeach
+
+        </select>
+
+    </div>
+
+    @error('module_id')
+        <small class="db-field-alert">
+            {{ $message }}
+        </small>
+    @enderror
+
+</div>
+
                             {{-- Show On Landing --}}
                             <div class="form-col-12 sm:form-col-6 md:form-col-4">
 
