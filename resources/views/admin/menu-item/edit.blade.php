@@ -274,7 +274,42 @@
                                 </div>
                             </div>
                         </div>
+@php
+    $selectedRecommendations = collect(
+        old('recommended_items', $recommended_items ?? [])
+    )
+        ->map(fn ($id) => (string) $id)
+        ->unique()
+        ->values()
+        ->all();
+@endphp
 
+<div class="col-12 mt-4 mb-4" id="recommended-items-wrapper">
+    <label class="db-field-title" for="recommended_items">
+        Recommended Items (Suggestions / Cross-Sell)
+    </label>
+
+    <select name="recommended_items[]" id="recommended_items" class="db-field-control select2 custom-select2" multiple="multiple" style="width: 100%;">
+        @foreach ($allMenuItems as $item)
+            <option
+                value="{{ $item->id }}"
+                @selected(
+                    in_array(
+                        (string) $item->id,
+                        $selectedRecommendations,
+                        true
+                    )
+                )
+            >
+                {{ $item->name }}
+            </option>
+        @endforeach
+    </select>
+
+    @error('recommended_items')
+        <small class="db-field-alert">{{ $message }}</small>
+    @enderror
+</div>
                         {{-- ================= SECTION 4: DESCRIPTION ================= --}}
                         <div class="mb-5 border-b pb-4">
                             <h4 class="text-lg font-medium text-gray-700 mb-4"><i class="fa-solid fa-align-left mr-2 text-primary"></i>Description</h4>

@@ -376,3 +376,24 @@ $(document).ready(function () {
     updateCoverImageCount();
 
 });
+
+$(document).ready(function () {
+    const $select = $('#recommended_items');
+
+    if (!$select.length) {
+        return;
+    }
+
+    // Initialize Select2 smoothly (Blade ka @selected apne aap render ho jayega)
+    $select.select2({
+        placeholder: 'Search and select recommended items...',
+        allowClear: true,
+        closeOnSelect: false,
+        width: '100%'
+    });
+    
+    // Optional: Agar initialization ke baad UI theek se refresh na ho (Bug fix fallback)
+    setTimeout(() => {
+        $select.trigger('change.select2');
+    }, 100);
+});

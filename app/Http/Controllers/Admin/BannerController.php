@@ -70,6 +70,7 @@ class BannerController extends BackendController
 
         $banner->target_type       = $request->target_type;
         $banner->target_id         = $request->target_id;
+        $banner->module_id         = $request->module_id;
         $banner->title             = $request->name;
         $banner->short_description = $request->description;
         $banner->link              = $request->url;
@@ -113,32 +114,33 @@ class BannerController extends BackendController
      * @return \Illuminate\Http\Response
      */
     public function update(BannerRequest $request, $id)
-{
-    $banner = Banner::findOrFail($id);
+    {
+        $banner = Banner::findOrFail($id);
 
-    $banner->target_type       = $request->target_type;
-    $banner->target_id         = $request->target_id;
-    $banner->show_on_landing   = $request->show_on_landing ?? 0;
-    $banner->title             = $request->name;
-    $banner->short_description = $request->description;
-    $banner->link              = $request->url;
-    $banner->status            = $request->status;
+        $banner->target_type       = $request->target_type;
+        $banner->target_id         = $request->target_id;
+        $banner->module_id          = $request->module_id;
+        $banner->show_on_landing   = $request->show_on_landing ?? 0;
+        $banner->title             = $request->name;
+        $banner->short_description = $request->description;
+        $banner->link              = $request->url;
+        $banner->status            = $request->status;
 
-    $banner->save();
+        $banner->save();
 
-    // Update image only if new image uploaded
-    if ($request->hasFile('image') && $request->file('image')->isValid()) {
+        // Update image only if new image uploaded
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
 
-        $banner->clearMediaCollection('banner');
+            $banner->clearMediaCollection('banner');
 
-        $banner
-            ->addMediaFromRequest('image')
-            ->toMediaCollection('banner');
+            $banner
+                ->addMediaFromRequest('image')
+                ->toMediaCollection('banner');
+        }
+
+        return redirect(route('admin.banner.index'))
+            ->withSuccess('The data updated successfully.');
     }
-
-    return redirect(route('admin.banner.index'))
-        ->withSuccess('The data updated successfully.');
-}
 
     /**
      * Remove the specified resource from storage.
